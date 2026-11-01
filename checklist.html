@@ -267,7 +267,7 @@ const SECTIONS = [
   ]},
 ];
 
-const KEY='soleil-checklist';
+const KEY='ssw-checklist';
 let state={marks:{},notes:{},info:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.marks)state=Object.assign(state,s)}catch(_){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){}}
@@ -358,7 +358,7 @@ document.getElementById('clearMarks').addEventListener('click',()=>{
 });
 document.getElementById('resetSite').addEventListener('click',()=>{
   if(!confirm('Lock the site again, empty the cart and turn music back on, on this device?'))return;
-  try{['soleil-access','soleil-archive','soleil-cart','soleil-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
+  try{['ssw-access','ssw-archive','ssw-cart','ssw-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
   msg.textContent='Site memory reset. Reload the site tab to see the lock again.';
 });
 

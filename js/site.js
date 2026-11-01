@@ -272,9 +272,9 @@ const nameEl=document.getElementById('name'),priceEl=document.getElementById('pr
       sizesEl=document.getElementById('sizes'),slotEl=document.getElementById('slot'),addBtn=document.getElementById('add'),
       cartEl=document.getElementById('cart'),soundBtn=document.getElementById('sound');
 let cat=null,current=-1,chosen=null,anim=null;
-let CART=[];try{CART=JSON.parse(localStorage.getItem('soleil-cart')||'[]')||[]}catch(_){CART=[]}
+let CART=[];try{CART=JSON.parse(localStorage.getItem('ssw-cart')||'[]')||[]}catch(_){CART=[]}
 function cartQty(){return CART.reduce((n,x)=>n+x.qty,0)}
-function saveCart(){try{localStorage.setItem('soleil-cart',JSON.stringify(CART))}catch(_){}cartEl.textContent='Cart ('+cartQty()+')'}
+function saveCart(){try{localStorage.setItem('ssw-cart',JSON.stringify(CART))}catch(_){}cartEl.textContent='Cart ('+cartQty()+')'}
 function bg(){return getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}
 function svgFor(shape,ink,hole){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="'+ink+'">'+SHAPES[shape].replace(/HOLE/g,hole).replace(/INK/g,ink)+'</svg>'}
 function buildShop(c){
@@ -484,8 +484,8 @@ const ARCHIVE_HASH='b22a9799327ae5c2ede95de1e1943426c145a79ec6f6735b3465b5e01277
 const SITE_SET=window.SOLEIL_SETTINGS||{};
 const OPEN_ROUTES=['terms','privacy'].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
 const pgLock=document.getElementById('pg-lock');
-let unlocked=false;try{unlocked=localStorage.getItem('soleil-access')==='1'}catch(_){}
-let archiveUnlocked=false;try{archiveUnlocked=localStorage.getItem('soleil-archive')==='1'}catch(_){}
+let unlocked=false;try{unlocked=localStorage.getItem('ssw-access')==='1'}catch(_){}
+let archiveUnlocked=false;try{archiveUnlocked=localStorage.getItem('ssw-archive')==='1'}catch(_){}
 let curRoute='home';
 function isLocked(r){return !OPEN_ROUTES.includes(r)&&!(r==='archive'?archiveUnlocked:unlocked)}
 async function sha(s){
@@ -511,8 +511,8 @@ document.getElementById('lockForm').addEventListener('submit',async e=>{
   const h=await sha(inp.value.trim().toUpperCase());
   const forArchive=curRoute==='archive';
   if(h===(forArchive?ARCHIVE_HASH:CODE_HASH)){
-    if(forArchive){archiveUnlocked=true;try{localStorage.setItem('soleil-archive','1')}catch(_){}}
-    else{unlocked=true;try{localStorage.setItem('soleil-access','1')}catch(_){}}
+    if(forArchive){archiveUnlocked=true;try{localStorage.setItem('ssw-archive','1')}catch(_){}}
+    else{unlocked=true;try{localStorage.setItem('ssw-access','1')}catch(_){}}
     inp.value='';err.textContent='';SFX.add();lastRoute=null;route();
     const el=document.getElementById('bToast');el.textContent='Unlocked';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800);
   }else{err.textContent='That code didn\u2019t work.';SFX.deny();f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');inp.select()}
@@ -520,7 +520,7 @@ document.getElementById('lockForm').addEventListener('submit',async e=>{
 
 /* ---------- Background music ---------- */
 const bgm=document.getElementById('bgm'),musicBtn=document.getElementById('musicBtn');
-let musicOn=true;try{musicOn=localStorage.getItem('soleil-music')!=='off'}catch(_){}
+let musicOn=true;try{musicOn=localStorage.getItem('ssw-music')!=='off'}catch(_){}
 let musicReady=false,musicStarted=false;
 const mbar=document.getElementById('mbar'),mbPlay=document.getElementById('mbPlay'),mbWave=document.getElementById('mbWave');
 mbWave.textContent=mbWave.textContent.repeat(60);
@@ -529,15 +529,16 @@ function syncMusicBtn(){musicBtn.setAttribute('aria-pressed',musicOn);musicBtn.s
   if(mbPlay.dataset.s!==st){mbPlay.dataset.s=st;mbPlay.innerHTML=on?'<svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="4" height="14"/><rect x="12" y="3" width="4" height="14"/></svg>':'<svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M5 3l12 7-12 7z"/></svg>';mbPlay.classList.remove('mb-bump');void mbPlay.offsetWidth;mbPlay.classList.add('mb-bump')}
   mbPlay.setAttribute('aria-label',on?'Pause music':'Play music');mbar.classList.toggle('playing',on)}
 mbPlay.addEventListener('click',e=>{e.stopPropagation();
-  if(bgm.paused){musicOn=true;try{localStorage.setItem('soleil-music','on')}catch(_){}playMusic()}
-  else{musicOn=false;try{localStorage.setItem('soleil-music','off')}catch(_){}bgm.pause()}
+  if(bgm.paused){musicOn=true;try{localStorage.setItem('ssw-music','on')}catch(_){}playMusic()}
+  else{musicOn=false;try{localStorage.setItem('ssw-music','off')}catch(_){}bgm.pause()}
   syncMusicBtn()});
 function playMusic(){if(!musicOn)return;bgm.volume=.6;const p=bgm.play();if(p&&p.then)p.then(()=>{musicStarted=true;musicReady=true;syncMusicBtn()}).catch(()=>{})}
 bgm.addEventListener('canplay',()=>{musicReady=true;mbar.hidden=false;syncMusicBtn()},{once:true});
 bgm.addEventListener('error',()=>{musicBtn.hidden=true;mbar.hidden=true});
 bgm.addEventListener('play',syncMusicBtn);bgm.addEventListener('pause',syncMusicBtn);
-['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#musicBtn'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
-musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('soleil-music',musicOn?'on':'off')}catch(_){}
+/* phones only allow sound from the end of a tap (touchend, pointerup, click), not the start */
+['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#musicBtn'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
+musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('ssw-music',musicOn?'on':'off')}catch(_){}
   if(musicOn)playMusic();else bgm.pause();syncMusicBtn()});
 bgm.load();
 
