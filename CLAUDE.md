@@ -92,7 +92,7 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Top banner (menu)** and **bottom banner** ("JOIN SMS FOR EARLY ACCESS TO EXCLUSIVE DROPS & GIVEAWAYS"): red, Helvetica Bold, the top one includes the real wordmark SVG. Both auto-scroll in opposite directions. Hold to stop, drag to scrub, release to resume. A quick tap on a menu word navigates; a drag never does.
 
-**Homepage pile.** Draggable pieces (the `ITEMS` array). One finger drags and flicks. Two fingers rotate and resize. Desktop scroll or trackpad pinch resizes. Tap opens a slide-up panel; red mock garments open their shop page instead. Shuffle rescatters. Pieces avoid the sign-up box when scattered and pass **under** it when dragged. Desktop pieces are scaled down (about 66 percent of phone size).
+**Homepage pile.** Draggable pieces (the `ITEMS` array). One finger drags and flicks. Two fingers rotate and resize. Desktop scroll or trackpad pinch resizes. Tap opens a slide-up panel; red mock garments open their shop page instead. Shuffle rescatters. Pieces avoid the sign-up box when scattered and pass **under** it when dragged. Piece size is set by `PILE_DESK` (desktop, currently .38) and `PILE_PHONE` (phone and tablet, currently .75) near the top of `js/site.js`.
 
 **Sign-up box** in the middle of the homepage: +1, numbers only, 10 digits, auto-formatted. Demo only (Section 7). Consent line links to Terms and Privacy.
 
@@ -100,7 +100,7 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Music bar** above the bottom banner: play and pause icons (drawn SVG, not text symbols), scrolling waveform. Music starts on the first tap anywhere, loops, and remembers mute. A round speaker button covers other pages.
 
-**Lock.** Every page except the homepage, Terms and Privacy shows a lock screen. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: soleil-access`). `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
+**Lock.** Every page except the homepage, Terms and Privacy shows a lock screen. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: soleil-access`). **Archive has its own code: ARCHIVE** (also case-insensitive, SHA-256 hash only). SOLEIL does not open Archive and ARCHIVE opens nothing else; it is remembered separately (`localStorage: soleil-archive`). Listing `archive` in `openPages` still opens it without a code. `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
 
 **Random.** Every 1st or 2nd tap lands on a surprise, alternating between the **video page** (same pile over `video.mp4`; the sign-up hides after a valid number) and the **3D booth** (three.js r128, loaded only when opened; views, tower tops, heights, colors, floor). Other taps land on regular pages.
 

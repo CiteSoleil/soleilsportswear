@@ -78,7 +78,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,t
       <li>Run the whole list once on a phone and once on a computer, if you can.</li>
       <li>Run it once in light mode and once in dark mode (your device's appearance setting).</li>
       <li>Turn your sound on. Music and shop sounds are part of the test.</li>
-      <li>Ask Stevens for the access code. Do not share it.</li>
+      <li>Ask Stevens for the access code and the separate archive code. Do not share them.</li>
       <li>To test the lock again from scratch, use "Reset site memory" at the bottom of this page.</li>
     </ol>
   </section>
@@ -136,7 +136,7 @@ const SECTIONS = [
     ['Shuffle rescatters', 'Shuffle at the bottom throws the pieces into a new layout.'],
     ['Pieces avoid the sign-up box', 'After a shuffle, no piece covers the sign-up box.'],
     ['Pieces pass under the box', 'Drag a piece over the sign-up box. It goes underneath, not on top.'],
-    ['Size on a computer', 'On a computer the pieces look smaller than on a phone, about two thirds the size.'],
+    ['Size on a computer', 'Pieces are small on a computer and a little larger on a phone. None look oversized.'],
     ['Braille art', 'The dotted braille art repeats down the left side, behind the pieces.'],
     ['Page does not scroll or zoom', 'Dragging on the homepage moves pieces, not the whole page.'],
   ]},
@@ -166,6 +166,9 @@ const SECTIONS = [
     ['Right code unlocks', 'The code from Stevens opens the page.'],
     ['Code ignores capitals', 'The code works in capitals and in lowercase.'],
     ['Unlock is remembered', 'Reload the site. Locked pages stay open on this device.'],
+    ['Archive has its own code', 'The main code does not open Archive. Ask Stevens for the archive code; it opens Archive only.'],
+    ['Archive code opens nothing else', 'The archive code typed on any other locked page is refused.'],
+    ['Archive unlock is remembered', 'Reload the site. Archive stays open on this device.'],
     ['Instagram link', 'The Follow link on the lock screen opens instagram.com/soleilsportswear.'],
     ['Owner only: open pages setting', 'Stevens only: a page listed in site-settings.js openPages opens without the code.'],
     ['Owner only: lock homepage setting', 'Stevens only: lockHome true in site-settings.js puts the lock on the homepage too.'],
@@ -228,8 +231,9 @@ const SECTIONS = [
     ['Cart is remembered', 'Reload the site. The cart still has the same items.'],
     ['Empty cart', 'With nothing in it, the cart says it is empty and links to the shop.'],
   ]},
-  {id:'archive', title:'Archive (Pynk Project)', how:'Unlock the site first. Open Archive from the top banner.', items:[
-    ['Spec sheets load', 'Every sheet shows its art, a PP code, crop marks and measurements.'],
+  {id:'archive', title:'Archive (Pynk Project)', how:'Open Archive from the top banner and enter the archive code.', items:[
+    ['Archive code', 'Archive asks for its own code, not the main one.'],
+    ['Spec sheets load','Every sheet shows its art, a PP code, crop marks and measurements.'],
     ['Color swatches', 'Each sheet shows color swatches taken from its art.'],
     ['Background grid drifts', 'The thin grid behind the sheets moves slowly on a diagonal.'],
     ['Grid in dark mode', 'In dark mode the grid lines are white instead of black.'],
@@ -354,7 +358,7 @@ document.getElementById('clearMarks').addEventListener('click',()=>{
 });
 document.getElementById('resetSite').addEventListener('click',()=>{
   if(!confirm('Lock the site again, empty the cart and turn music back on, on this device?'))return;
-  try{['soleil-access','soleil-cart','soleil-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
+  try{['soleil-access','soleil-archive','soleil-cart','soleil-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
   msg.textContent='Site memory reset. Reload the site tab to see the lock again.';
 });
 

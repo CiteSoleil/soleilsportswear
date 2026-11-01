@@ -31,7 +31,9 @@ const signup=document.getElementById('signup');
 signup.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('phone').value.replace(/\D/g,'');document.getElementById('fine').textContent=v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.'});
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let z=10, els=[];
-function unit(){const W=stage.clientWidth;return Math.min(W,760)*(W>900?.66:1)}
+/* Pile piece size: desktop (wider than 900px) and phone/tablet. 1 = original phone size. */
+const PILE_DESK=.38,PILE_PHONE=.75;
+function unit(){const W=stage.clientWidth;return Math.min(W,760)*(W>900?PILE_DESK:PILE_PHONE)}
 ITEMS.forEach(it=>{
   const b=document.createElement('button');
   b.type='button';b.className='item'+(it.dark?' has-dark':'');
@@ -477,13 +479,18 @@ function boothToast(){const el=document.getElementById('bToast');el.textContent=
 
 /* ---------- Early access lock ---------- */
 const CODE_HASH='c598a6e2835e5ce64f29fd9395b3848cb70b707790b482bdb2ea5a41bfca8892';
+/* Archive has its own code; the main code does not open it */
+const ARCHIVE_HASH='b22a9799327ae5c2ede95de1e1943426c145a79ec6f6735b3465b5e0127715cc';
 const SITE_SET=window.SOLEIL_SETTINGS||{};
 const OPEN_ROUTES=['terms','privacy'].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
 const pgLock=document.getElementById('pg-lock');
 let unlocked=false;try{unlocked=localStorage.getItem('soleil-access')==='1'}catch(_){}
+let archiveUnlocked=false;try{archiveUnlocked=localStorage.getItem('soleil-archive')==='1'}catch(_){}
+let curRoute='home';
+function isLocked(r){return !OPEN_ROUTES.includes(r)&&!(r==='archive'?archiveUnlocked:unlocked)}
 async function sha(s){
   if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-  return s==='SOLEIL'?CODE_HASH:'';
+  return s==='SOLEIL'?CODE_HASH:s==='ARCHIVE'?ARCHIVE_HASH:'';
 }
 const appEl=document.getElementById('app'),popEl=document.getElementById('pop');
 let popOpener=null;
@@ -502,7 +509,10 @@ document.getElementById('lockSms').onclick=openPop;
 document.getElementById('lockForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.currentTarget,inp=document.getElementById('code'),err=document.getElementById('lockErr');
   const h=await sha(inp.value.trim().toUpperCase());
-  if(h===CODE_HASH){unlocked=true;try{localStorage.setItem('soleil-access','1')}catch(_){}
+  const forArchive=curRoute==='archive';
+  if(h===(forArchive?ARCHIVE_HASH:CODE_HASH)){
+    if(forArchive){archiveUnlocked=true;try{localStorage.setItem('soleil-archive','1')}catch(_){}}
+    else{unlocked=true;try{localStorage.setItem('soleil-access','1')}catch(_){}}
     inp.value='';err.textContent='';SFX.add();lastRoute=null;route();
     const el=document.getElementById('bToast');el.textContent='Unlocked';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800);
   }else{err.textContent='That code didn\u2019t work.';SFX.deny();f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');inp.select()}
@@ -663,7 +673,8 @@ function route(){
   const home=r==='home'||r==='video';
   document.documentElement.classList.toggle('is-home',home);
   stage.hidden=!home;foot.hidden=!home;showVideo(r==='video'&&(unlocked||OPEN_ROUTES.includes(r)));
-  const locked=!unlocked&&!OPEN_ROUTES.includes(r);
+  curRoute=r;
+  const locked=isLocked(r);
   pgLock.hidden=!locked;
   if(locked){showVideo(false);stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;pgArchive.hidden=true;closeArchive();
     document.documentElement.classList.remove('is-home');document.getElementById('lockErr').textContent='';
