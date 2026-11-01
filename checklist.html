@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Site checklist | soleilsportswear</title>
+<style>
+:root{
+  --bg:#F9F9F9; --ink:#0B0B0B; --muted:#5E5E5E; --line:#B7B7B7; --sheet:#FFFFFF; --red:#E1251B;
+  --pass:#1F7A3A; --fail:#E1251B; --skip:#5E5E5E;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0B0B0B;--ink:#F9F9F9;--muted:#B7B7B7;--line:#5E5E5E;--sheet:#161616;--pass:#4CC870;--skip:#B7B7B7;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#0B0B0B;--ink:#F9F9F9;--muted:#B7B7B7;--line:#5E5E5E;--sheet:#161616;--pass:#4CC870;--skip:#B7B7B7;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.top{background:var(--red);color:#F9F9F9;padding:14px 16px;font-weight:700;letter-spacing:-.03em;text-transform:uppercase;font-size:15px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.top a{color:inherit}
+main{max-width:760px;margin:0 auto;padding:24px 16px 120px}
+h1{font-size:clamp(28px,7vw,40px);letter-spacing:-.03em;margin:0 0 10px;line-height:1}
+h2{font-size:20px;letter-spacing:-.03em;margin:0}
+p{line-height:1.45}
+.lead{color:var(--muted);margin:0 0 20px;max-width:56ch}
+.box{border:1px solid var(--line);padding:16px;margin:0 0 20px;background:var(--sheet)}
+.box h2{margin-bottom:10px}
+.box ol{margin:0;padding-left:20px;line-height:1.5}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+label.f input,label.f select{display:block;width:100%;margin-top:6px;font:inherit;font-size:16px;font-weight:400;text-transform:none;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:0;padding:10px}
+label.f input:focus,label.f select:focus{outline:none;border-color:var(--ink)}
+.tally{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;font-weight:700;text-transform:uppercase}
+.tally .p{color:var(--pass)}.tally .x{color:var(--fail)}.tally .s{color:var(--skip)}.tally .n{color:var(--muted)}
+.tally .bar{flex-basis:100%;height:4px;background:var(--line);display:flex}
+.tally .bar i{display:block;height:100%}
+details.sec{border-top:1px solid var(--line)}
+details.sec:last-of-type{border-bottom:1px solid var(--line)}
+details.sec>summary{list-style:none;cursor:pointer;padding:16px 0;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .count{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+details.sec>summary h2::before{content:"+ ";color:var(--red)}
+details.sec[open]>summary h2::before{content:"- "}
+.sec .how{color:var(--muted);font-size:14px;margin:-6px 0 12px}
+.item{padding:12px 0;border-top:1px dashed var(--line)}
+.item .t{margin:0 0 10px;line-height:1.4}
+.item .t b{display:block}
+.item .t span{color:var(--muted);font-size:14px}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btns button{font:inherit;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;min-width:74px;padding:9px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:0;cursor:pointer}
+.btns button[aria-pressed="true"][data-v="pass"]{background:var(--pass);border-color:var(--pass);color:#F9F9F9}
+.btns button[aria-pressed="true"][data-v="fail"]{background:var(--fail);border-color:var(--fail);color:#F9F9F9}
+.btns button[aria-pressed="true"][data-v="skip"]{background:var(--skip);border-color:var(--skip);color:var(--bg)}
+.note{display:none;width:100%;margin-top:8px;font:inherit;font-size:16px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:0;padding:10px;min-height:64px;resize:vertical}
+.item.fail .note,.item.skip .note,.item.has-note .note{display:block}
+.send{margin-top:28px}
+.send .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.act{font:inherit;font-size:14px;font-weight:700;text-transform:uppercase;padding:12px 16px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:0;cursor:pointer}
+.act.ghost{background:transparent;color:var(--ink)}
+.act.warn{background:transparent;color:var(--red);border-color:var(--red)}
+#out{width:100%;min-height:160px;margin-top:12px;font:13px/1.45 ui-monospace,"SF Mono",Menlo,monospace;color:var(--ink);background:transparent;border:1px solid var(--line);padding:10px}
+.msg{min-height:1.4em;font-size:14px;color:var(--muted);margin:8px 0 0}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="top"><span>Soleil site checklist</span><a href="./" target="_blank" rel="noopener">Open the site</a></div>
+<main>
+  <h1>Tester checklist</h1>
+  <p class="lead">Go through each section on the site, then mark every check Pass, Fail or Skip. Add a note to anything that fails. When you are done, send the results at the bottom. Your marks are saved on this device until you clear them.</p>
+
+  <section class="box">
+    <h2>Before you start</h2>
+    <ol>
+      <li>Open the site in a second tab with the link at the top.</li>
+      <li>Run the whole list once on a phone and once on a computer, if you can.</li>
+      <li>Run it once in light mode and once in dark mode (your device's appearance setting).</li>
+      <li>Turn your sound on. Music and shop sounds are part of the test.</li>
+      <li>Ask Stevens for the access code. Do not share it.</li>
+      <li>To test the lock again from scratch, use "Reset site memory" at the bottom of this page.</li>
+    </ol>
+  </section>
+
+  <section class="box">
+    <h2>About this run</h2>
+    <div class="fields">
+      <label class="f">Your name<input id="fName" autocomplete="name"></label>
+      <label class="f">Device<input id="fDevice" placeholder="iPhone 15, MacBook Air"></label>
+      <label class="f">Browser<input id="fBrowser" placeholder="Safari, Chrome"></label>
+      <label class="f">Appearance<select id="fMode"><option value="">Choose</option><option>Light</option><option>Dark</option></select></label>
+    </div>
+  </section>
+
+  <div class="tally" id="tally" aria-live="polite"></div>
+  <div id="list"></div>
+
+  <section class="box send">
+    <h2>Send results</h2>
+    <p class="lead" style="margin:6px 0 0">Copy the results and send them to Stevens in a text or email, or use Share on a phone.</p>
+    <div class="row">
+      <button type="button" class="act" id="copy">Copy results</button>
+      <button type="button" class="act ghost" id="share" hidden>Share</button>
+      <a class="act ghost" id="mail" href="#" style="text-decoration:none">Email</a>
+    </div>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <textarea id="out" readonly aria-label="Results text"></textarea>
+    <div class="row">
+      <button type="button" class="act warn" id="clearMarks">Clear my marks</button>
+      <button type="button" class="act warn" id="resetSite">Reset site memory</button>
+    </div>
+    <p class="msg">Reset site memory locks the site again, empties the cart and turns music back on, on this device only.</p>
+  </section>
+</main>
+
+<script>
+const SECTIONS = [
+  {id:'banners', title:'Top and bottom banners', how:'Look at the red banners at the top and bottom of every page.', items:[
+    ['Both banners scroll on their own', 'The top one and the bottom one move in opposite directions.'],
+    ['Wordmark looks right', 'The soleilsportswear wordmark in the top banner is crisp, not stretched or blurry.'],
+    ['Hold stops the banner', 'Press and hold on a banner. It stops while you hold.'],
+    ['Drag scrubs the banner', 'Hold and drag sideways. The banner follows your finger or mouse.'],
+    ['Release resumes', 'Let go. The banner starts scrolling again by itself.'],
+    ['Quick tap opens a page', 'A quick tap on a menu word (Mens, Archive, About) goes to that page.'],
+    ['Drag never opens a page', 'Dragging across a menu word and letting go does not change the page.'],
+  ]},
+  {id:'pile', title:'Homepage pile', how:'Go to the homepage. The pieces scattered around the sign-up box are the pile.', items:[
+    ['Pile loads fully', 'Every piece shows. No empty boxes or broken image icons.'],
+    ['Drag a piece', 'One finger (or mouse) drags a piece smoothly.'],
+    ['Flick a piece', 'A fast drag and release sends the piece sliding, then it slows down.'],
+    ['Two-finger rotate and resize (phone)', 'Two fingers on a piece turn it and make it bigger or smaller.'],
+    ['Scroll or pinch to resize (computer)', 'Mouse scroll or trackpad pinch over a piece changes its size.'],
+    ['Tap opens the panel', 'A quick tap on a regular piece slides up a panel with the piece and a note. "Back to the pile" closes it.'],
+    ['Red mock garment opens the shop', 'Tapping a red mock garment (tee, hoodie, cap, shorts, tote) opens its shop page instead of the panel.'],
+    ['Shuffle rescatters', 'Shuffle at the bottom throws the pieces into a new layout.'],
+    ['Pieces avoid the sign-up box', 'After a shuffle, no piece covers the sign-up box.'],
+    ['Pieces pass under the box', 'Drag a piece over the sign-up box. It goes underneath, not on top.'],
+    ['Size on a computer', 'On a computer the pieces look smaller than on a phone, about two thirds the size.'],
+    ['Braille art', 'The dotted braille art repeats down the left side, behind the pieces.'],
+    ['Page does not scroll or zoom', 'Dragging on the homepage moves pieces, not the whole page.'],
+  ]},
+  {id:'signup', title:'Homepage sign-up box', how:'Use the "Join SMS" box in the middle of the homepage. It is a demo and does not send anything.', items:[
+    ['+1 shows before the field', 'The country code +1 sits to the left of the number field.'],
+    ['Numbers only', 'Letters and symbols cannot be typed into the field.'],
+    ['Auto-format', 'Typing 10 digits formats like (281) 330-8004.'],
+    ['Stops at 10 digits', 'You cannot type an eleventh digit.'],
+    ['Short number is refused', 'Join with fewer than 10 digits asks for a 10 digit number.'],
+    ['Valid number is accepted', 'Join with 10 digits shows a "Demo only. Nothing was sent" message.'],
+    ['Consent links work', 'The Terms and Privacy links in the small print open those pages.'],
+  ]},
+  {id:'music', title:'Music', how:'Have your sound on. Music should start after your first tap anywhere.', items:[
+    ['Starts on first tap', 'Music begins after your first tap or click anywhere on the site.'],
+    ['Music bar shows', 'Above the bottom banner there is a play/pause button and a moving waveform.'],
+    ['Play and pause icons', 'The button shows drawn play and pause icons and switches between them.'],
+    ['Waveform moves while playing', 'The waveform scrolls while music plays and stops when paused.'],
+    ['Loops', 'When the track ends it starts again by itself.'],
+    ['Keeps playing between pages', 'Go to Mens, then About, then back home. Music never restarts or cuts out.'],
+    ['Speaker button on other pages', 'On pages without the music bar, a round speaker button mutes and unmutes.'],
+    ['Mute is remembered', 'Pause the music, reload the page and tap. Music stays off until you press play.'],
+  ]},
+  {id:'lock', title:'Lock and access code', how:'Use "Reset site memory" below first so the site is locked again.', items:[
+    ['Homepage, Terms and Privacy are open', 'These three pages show without a code.'],
+    ['Other pages are locked', 'Mens, Archive, About, Cart and the rest show the lock screen.'],
+    ['Wrong code is refused', 'A wrong code shows an error message and keeps the page locked.'],
+    ['Right code unlocks', 'The code from Stevens opens the page.'],
+    ['Code ignores capitals', 'The code works in capitals and in lowercase.'],
+    ['Unlock is remembered', 'Reload the site. Locked pages stay open on this device.'],
+    ['Instagram link', 'The Follow link on the lock screen opens instagram.com/soleilsportswear.'],
+    ['Owner only: open pages setting', 'Stevens only: a page listed in site-settings.js openPages opens without the code.'],
+    ['Owner only: lock homepage setting', 'Stevens only: lockHome true in site-settings.js puts the lock on the homepage too.'],
+  ]},
+  {id:'popup', title:'SMS pop-up', how:'Use "Reset site memory" below, then visit a locked page.', items:[
+    ['Pop-up appears on locked pages', 'Visiting a locked page shows the "Get early access" pop-up.'],
+    ['Appears again on each locked visit', 'Close it, go to another locked page. It appears again.'],
+    ['Close button', 'The X closes the pop-up.'],
+    ['Tap outside closes', 'Tapping the dark area around the pop-up closes it.'],
+    ['Escape closes (computer)', 'The Escape key closes the pop-up.'],
+    ['Same number rules', 'The phone field takes numbers only, formats them and needs 10 digits.'],
+    ['"No code?" opens it', 'On the lock screen, "No code? Join SMS for early access" opens the pop-up.'],
+    ['Consent links work', 'Terms and Privacy links in the pop-up open those pages.'],
+  ]},
+  {id:'random', title:'Random', how:'Unlock the site first. Tap Random in the top banner several times.', items:[
+    ['Surprise every 1st or 2nd tap', 'Every first or second tap on Random lands on a surprise page.'],
+    ['Surprises alternate', 'The surprises switch between the video page and the 3D booth.'],
+    ['Other taps land on regular pages', 'Taps that are not a surprise land on a normal page, not the one you were on.'],
+    ['Back button behaves', 'After Random, the browser Back button does not trap you on the Random page.'],
+  ]},
+  {id:'video', title:'Video page', how:'Reach it through Random.', items:[
+    ['Video plays behind the pile', 'A muted video fills the background with the pile on top.'],
+    ['Video is muted', 'No sound from the video. The music keeps playing.'],
+    ['Pile works over the video', 'Drag, flick, rotate and resize all still work.'],
+    ['Sign-up hides after a valid number', 'Enter a valid 10-digit number and join. The sign-up box goes away.'],
+    ['Loops', 'The video starts again when it ends.'],
+  ]},
+  {id:'booth', title:'3D booth', how:'Reach it through Random. It can take a few seconds to load the first time.', items:[
+    ['Booth loads', '"Loading booth" goes away and the 3D booth appears.'],
+    ['Logos and art show', 'Official logo on the front header, teddy bear on both side walls, CS corner girl inside the back.'],
+    ['Drag to spin', 'Dragging turns the booth around.'],
+    ['Pinch or scroll to zoom', 'Pinch on a phone or scroll on a computer zooms in and out.'],
+    ['View buttons', '3/4, Front, Left, Right, Back, Top and Inside each move the camera to that view.'],
+    ['Tower tops', 'Sun and Castle switch the tops of the towers.'],
+    ['Tower heights', 'All equal and Staggered change the tower heights.'],
+    ['Wall, tower and top colors', 'Each color swatch changes that part of the booth.'],
+    ['Floor', 'Black, Leopard and Grey change the floor.'],
+    ['Phone and computer', 'The booth fits the screen and the buttons can be reached on a phone.'],
+  ]},
+  {id:'shop', title:'Shop pages (Mens, Womens, Accessories)', how:'Unlock the site first. Open each shop page from the top banner.', items:[
+    ['Item rail', 'Items are listed on the side. Tapping one selects it.'],
+    ['Pixel build-in', 'The selected item builds in on the screen in a pixel effect inside the corner frame.'],
+    ['Console sounds', 'Selecting, adding and refused actions make short sounds.'],
+    ['Sound switch', 'Sound: On/Off turns the shop sounds off and back on.'],
+    ['Sold-out size', 'The first size is sold out. Tapping it shakes and does not select.'],
+    ['Pick a size', 'Other sizes can be selected.'],
+    ['Add needs a size', 'Add to cart without a size shakes the sizes and adds nothing.'],
+    ['Add to cart works', 'With a size picked, Add to cart raises the Cart count by one.'],
+    ['Arrow keys (computer)', 'Arrow keys move between items.'],
+    ['Hoodie in Mens and Womens', 'The CSH003 hoodie appears in both Mens and Womens.'],
+    ['Backpack in Accessories', 'Backpack side and backpack front are two separate items in Accessories.'],
+    ['Pink hoodie back not in shop', 'The pink hoodie back does not appear on any shop page.'],
+  ]},
+  {id:'cart', title:'Cart', how:'Add two different items first.', items:[
+    ['Items listed', 'The cart lists each item with name, size and price.'],
+    ['Change quantity', 'Plus and minus change the quantity, and the Cart count in the shop updates to match.'],
+    ['Remove', 'Remove takes the item out of the cart.'],
+    ['Subtotal', 'A subtotal line shows. Prices are placeholders ($00.00) for now.'],
+    ['Demo checkout', 'Checkout shows a "Demo only" message and does not ask for payment.'],
+    ['Cart is remembered', 'Reload the site. The cart still has the same items.'],
+    ['Empty cart', 'With nothing in it, the cart says it is empty and links to the shop.'],
+  ]},
+  {id:'archive', title:'Archive (Pynk Project)', how:'Unlock the site first. Open Archive from the top banner.', items:[
+    ['Spec sheets load', 'Every sheet shows its art, a PP code, crop marks and measurements.'],
+    ['Color swatches', 'Each sheet shows color swatches taken from its art.'],
+    ['Background grid drifts', 'The thin grid behind the sheets moves slowly on a diagonal.'],
+    ['Grid in dark mode', 'In dark mode the grid lines are white instead of black.'],
+    ['Drag, flick, rotate, resize', 'Sheets move the same way as homepage pieces.'],
+    ['Tap opens full spec', 'Tapping a sheet opens its full spec. It closes again.'],
+    ['Stevens’s own pieces included', 'Pieces Stevens added himself also appear as sheets.'],
+    ['Filters', 'If filter buttons show, each one narrows the sheets to that group.'],
+  ]},
+  {id:'text', title:'Other pages', how:'Unlock the site first.', items:[
+    ['About', 'Opens and reads correctly.'],
+    ['FAQ', 'Opens and reads correctly.'],
+    ['Campaigns', 'Opens and reads correctly.'],
+    ['Media', 'Opens and reads correctly.'],
+    ['More', 'Lists every page, and each link works.'],
+    ['Instagram links', 'Every Instagram link opens instagram.com/soleilsportswear.'],
+  ]},
+  {id:'policy', title:'Policy pages', how:'These are drafts. Check that they open and read cleanly, not the legal wording.', items:[
+    ['Terms', 'Opens without the code and shows the draft with fill-in boxes.'],
+    ['Privacy', 'Opens without the code and shows the draft with fill-in boxes.'],
+    ['Refunds', 'Opens (after unlocking) and shows the draft.'],
+    ['Shipping', 'Opens (after unlocking) and shows the draft.'],
+  ]},
+  {id:'general', title:'Everywhere', how:'Check these as you go.', items:[
+    ['Dark mode', 'With your device in dark mode, every page switches to dark colors and stays readable.'],
+    ['Light mode', 'With your device in light mode, every page is light and readable.'],
+    ['Phone edges', 'On a phone with a notch or rounded corners, nothing is cut off at the top or bottom.'],
+    ['No sideways scroll', 'No page scrolls sideways on a phone.'],
+    ['Back and forward', 'The browser Back and Forward buttons move between pages you visited.'],
+    ['Reduced motion', 'With Reduce Motion on in your device settings, banners and drifting motion calm down or stop.'],
+    ['Page loads quickly', 'The homepage shows its pieces within a few seconds on mobile data.'],
+  ]},
+];
+
+const KEY='soleil-checklist';
+let state={marks:{},notes:{},info:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.marks)state=Object.assign(state,s)}catch(_){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){}}
+
+const list=document.getElementById('list');
+const total=SECTIONS.reduce((n,s)=>n+s.items.length,0);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+SECTIONS.forEach((sec,si)=>{
+  const d=document.createElement('details');d.className='sec';d.id='s-'+sec.id;
+  if(si===0)d.open=true;
+  d.innerHTML='<summary><h2>'+esc(sec.title)+'</h2><span class="count"></span></summary><p class="how">'+esc(sec.how)+'</p>'+
+    sec.items.map((it,ii)=>{const k=sec.id+'.'+ii;return '<div class="item" data-k="'+k+'"><p class="t"><b>'+esc(it[0])+'</b><span>'+esc(it[1])+'</span></p>'+
+      '<div class="btns" role="group" aria-label="'+esc(it[0])+'">'+['pass','fail','skip'].map(v=>'<button type="button" data-v="'+v+'" aria-pressed="false">'+v[0].toUpperCase()+v.slice(1)+'</button>').join('')+
+      '<button type="button" data-v="note" aria-pressed="false">Note</button></div>'+
+      '<textarea class="note" aria-label="Note for '+esc(it[0])+'" placeholder="What happened? Which page, which device?"></textarea></div>'}).join('');
+  list.appendChild(d);
+});
+
+function paintItem(el){
+  const k=el.dataset.k,m=state.marks[k]||'',n=state.notes[k]||'';
+  el.classList.toggle('fail',m==='fail');el.classList.toggle('skip',m==='skip');
+  if(n)el.classList.add('has-note');
+  el.querySelectorAll('.btns button').forEach(b=>{if(b.dataset.v!=='note')b.setAttribute('aria-pressed',String(b.dataset.v===m))});
+  const ta=el.querySelector('.note');if(ta.value!==n)ta.value=n;
+}
+function counts(keys){const c={pass:0,fail:0,skip:0};keys.forEach(k=>{const m=state.marks[k];if(m)c[m]++});c.open=keys.length-c.pass-c.fail-c.skip;return c}
+function paintTally(){
+  const all=[];SECTIONS.forEach(s=>s.items.forEach((_,i)=>all.push(s.id+'.'+i)));
+  const c=counts(all),pct=v=>(v/total*100)+'%';
+  document.getElementById('tally').innerHTML='<span class="p">'+c.pass+' pass</span><span class="x">'+c.fail+' fail</span><span class="s">'+c.skip+' skip</span><span class="n">'+c.open+' not checked</span>'+
+    '<span class="bar" aria-hidden="true"><i style="width:'+pct(c.pass)+';background:var(--pass)"></i><i style="width:'+pct(c.fail)+';background:var(--fail)"></i><i style="width:'+pct(c.skip)+';background:var(--skip)"></i></span>';
+  SECTIONS.forEach(s=>{const sc=counts(s.items.map((_,i)=>s.id+'.'+i));
+    document.querySelector('#s-'+s.id+' .count').textContent=(s.items.length-sc.open)+'/'+s.items.length+(sc.fail?', '+sc.fail+' fail':'')});
+  document.getElementById('out').value=resultsText();
+  document.getElementById('mail').href='mailto:?subject='+encodeURIComponent('Soleil site checklist results')+'&body='+encodeURIComponent(resultsText());
+}
+
+list.addEventListener('click',e=>{
+  const b=e.target.closest('.btns button');if(!b)return;
+  const el=b.closest('.item'),k=el.dataset.k,v=b.dataset.v;
+  if(v==='note'){el.classList.add('has-note');el.querySelector('.note').focus();return}
+  state.marks[k]=state.marks[k]===v?'':v;if(!state.marks[k])delete state.marks[k];
+  save();paintItem(el);paintTally();
+  if(v==='fail'&&state.marks[k])el.querySelector('.note').focus();
+});
+list.addEventListener('input',e=>{
+  if(!e.target.classList.contains('note'))return;
+  const k=e.target.closest('.item').dataset.k;
+  if(e.target.value.trim())state.notes[k]=e.target.value;else delete state.notes[k];
+  save();paintTally();
+});
+
+const INFO={fName:'name',fDevice:'device',fBrowser:'browser',fMode:'mode'};
+Object.entries(INFO).forEach(([id,key])=>{const el=document.getElementById(id);el.value=state.info[key]||'';
+  el.addEventListener('input',()=>{state.info[key]=el.value;save();paintTally()})});
+
+function resultsText(){
+  const i=state.info,lines=['Soleil site checklist results',
+    'Tester: '+(i.name||'-')+' | Device: '+(i.device||'-')+' | Browser: '+(i.browser||'-')+' | Appearance: '+(i.mode||'-'),
+    'Date: '+new Date().toLocaleString(),''];
+  const all=[];SECTIONS.forEach(s=>s.items.forEach((_,x)=>all.push(s.id+'.'+x)));
+  const c=counts(all);
+  lines.push('Totals: '+c.pass+' pass, '+c.fail+' fail, '+c.skip+' skip, '+c.open+' not checked (of '+total+')','');
+  [['fail','FAILED'],['skip','SKIPPED']].forEach(([m,label])=>{
+    const rows=[];SECTIONS.forEach(s=>s.items.forEach((it,x)=>{const k=s.id+'.'+x;if(state.marks[k]===m)rows.push('- '+s.title+': '+it[0]+(state.notes[k]?'\n    Note: '+state.notes[k].trim().replace(/\n+/g,' '):''))}));
+    if(rows.length)lines.push(label,...rows,'');
+  });
+  const extra=[];SECTIONS.forEach(s=>s.items.forEach((it,x)=>{const k=s.id+'.'+x;if(state.notes[k]&&state.marks[k]!=='fail'&&state.marks[k]!=='skip')extra.push('- '+s.title+': '+it[0]+'\n    Note: '+state.notes[k].trim().replace(/\n+/g,' '))}));
+  if(extra.length)lines.push('OTHER NOTES',...extra,'');
+  const open=[];SECTIONS.forEach(s=>{const n=s.items.filter((_,x)=>!state.marks[s.id+'.'+x]).length;if(n)open.push('- '+s.title+': '+n)});
+  if(open.length)lines.push('NOT CHECKED',...open);
+  return lines.join('\n');
+}
+
+const msg=document.getElementById('msg');
+document.getElementById('copy').addEventListener('click',async()=>{
+  const t=resultsText();
+  try{await navigator.clipboard.writeText(t);msg.textContent='Copied. Paste it into a text or email to Stevens.'}
+  catch(_){const o=document.getElementById('out');o.focus();o.select();msg.textContent='Select all the text in the box below and copy it.'}
+});
+const shareBtn=document.getElementById('share');
+if(navigator.share){shareBtn.hidden=false;shareBtn.addEventListener('click',()=>{navigator.share({title:'Soleil site checklist results',text:resultsText()}).catch(()=>{})})}
+document.getElementById('clearMarks').addEventListener('click',()=>{
+  if(!confirm('Clear every mark and note on this checklist?'))return;
+  state={marks:{},notes:{},info:state.info};save();
+  document.querySelectorAll('.item').forEach(el=>{el.classList.remove('has-note');paintItem(el)});paintTally();msg.textContent='Marks cleared.';
+});
+document.getElementById('resetSite').addEventListener('click',()=>{
+  if(!confirm('Lock the site again, empty the cart and turn music back on, on this device?'))return;
+  try{['soleil-access','soleil-cart','soleil-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
+  msg.textContent='Site memory reset. Reload the site tab to see the lock again.';
+});
+
+document.querySelectorAll('.item').forEach(paintItem);paintTally();
+</script>
+</body>
+</html>
