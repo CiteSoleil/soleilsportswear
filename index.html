@@ -243,6 +243,8 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .side-art{position:absolute;left:clamp(22px,7vw,110px);top:0;bottom:0;margin:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:clamp(9px,1.5vw,15px);line-height:1.08;letter-spacing:0;color:var(--ink);opacity:.9;white-space:pre}
 .vid-on .side-art{display:none}
 @media (max-width:640px){.side-art{left:26px;font-size:9px}}
+.side-art.right{left:auto;right:clamp(22px,7vw,110px);transform:scaleX(-1)}
+@media (max-width:640px){.side-art.right{left:auto;right:26px}}
 .is-home .music{bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
 .cc{display:flex;align-items:center;padding:0 10px;border:1px solid var(--line);font-size:16px;color:var(--muted);flex:none}
 .pop .cc{border:1.5px solid var(--ink);color:var(--ink);font-family:inherit}
@@ -1092,6 +1094,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeArchive()});
     if(!pgArchive.hidden&&!reduce){x=(x+SPEED*dt)%SIZE;y=(y+SPEED*dt)%SIZE;pgArchive.style.backgroundPosition=x.toFixed(1)+'px '+y.toFixed(1)+'px'}
     requestAnimationFrame(frame)}
   requestAnimationFrame(frame)})();
+/* mirror the side art on the right */
+(function(){const l=document.querySelector('.side-art');if(!l)return;const r=l.cloneNode(true);r.classList.add('right');l.parentNode.insertBefore(r,l.nextSibling);
+  new MutationObserver(()=>{r.textContent=l.textContent}).observe(l,{childList:true,characterData:true,subtree:true})})();
 /* router */
 function route(){
   let r=(location.hash.slice(1)||'home').toLowerCase();
