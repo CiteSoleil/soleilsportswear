@@ -197,6 +197,107 @@ const MOCKCAT={tee:'mens',hoodie:'mens',shorts:'mens',cap:'accessories',tote:'ac
 const REAL={};ITEMS.forEach(x=>{if(x.id==='csh003'||x.id==='bagside'||x.id==='bagfront')REAL[x.id]=x.src});
 function art(shape){return REAL[shape]?'<img src="'+REAL[shape]+'" alt="" draggable="false">':'<svg viewBox="0 0 200 200" fill="'+RED+'" aria-hidden="true">'+SHAPES[shape].replace(/HOLE/g,'var(--bg)').replace(/INK/g,RED)+'</svg>'}
 const F=s=>'<span class="fill">['+s+']</span>';
+/* ---------- Media: highlights and story viewer ---------- */
+/* Each highlight plays its items in order. type is 'photo' or 'video'.
+   src null shows a placeholder slide. Real photos go in assets/media/01/ etc.;
+   real videos will be Cloudflare Stream links. cover is the circle image (null shows the number). */
+const MEDIA=[
+ {id:'01',cover:null,items:[{type:'photo',src:null},{type:'video',src:'video.mp4',sample:true},{type:'photo',src:null}]},
+ {id:'02',cover:null,items:[{type:'photo',src:null},{type:'photo',src:null},{type:'video',src:'video.mp4',sample:true}]},
+ {id:'03',cover:null,items:[{type:'video',src:'video.mp4',sample:true},{type:'photo',src:null},{type:'photo',src:null}]},
+ {id:'04',cover:null,items:[{type:'photo',src:null},{type:'video',src:'video.mp4',sample:true},{type:'photo',src:null},{type:'photo',src:null}]}];
+const PHOTO_SECS=5,storySeen=new Set();
+let storyHush=false;
+const ICON_X='<svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M2 2l12 12M14 2 2 14" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>';
+const ICON_SND=on=>'<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 7h3l5-4v14l-5-4H3z" fill="currentColor"/>'+(on?'<path d="M14 6.5q2.5 3.5 0 7M16.5 4q4.5 6 0 12" stroke="currentColor" stroke-width="1.6" fill="none"/>':'<path d="M13.5 7.5l5 5m0-5-5 5" stroke="currentColor" stroke-width="1.6" fill="none"/>')+'</svg>';
+const ICON_PLAY='<svg viewBox="0 0 20 20" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M6 3l11 7-11 7z"/></svg>';
+function mediaHTML(){
+  const ring=h=>'<button type="button" class="hl'+(storySeen.has(h.id)?' seen':'')+'" data-hl="'+h.id+'" aria-label="Open highlight '+h.id+'"><span class="ring"><span class="cv">'+
+    (h.cover?'<img src="'+h.cover+'" alt="" draggable="false">':h.id)+'</span></span><span class="hl-t">'+h.id+'</span></button>';
+  const tile=(h,it,i)=>'<button type="button" class="mtile" data-hl="'+h.id+'" data-i="'+i+'" aria-label="Highlight '+h.id+', '+(it.type==='video'?'video':'photo')+' '+(i+1)+'">'+
+    (it.src&&it.type==='photo'?'<img src="'+it.src+'" alt="" loading="lazy" draggable="false">':'')+
+    '<span class="mt-n">'+h.id+' / '+(i+1)+'</span>'+(it.type==='video'?'<span class="mt-play">'+ICON_PLAY+'</span>':'')+
+    '<span class="mt-k">'+(it.type==='video'?'Video':'Photo')+'</span></button>';
+  return '<header class="ptitle rule"><h1>Media</h1><p>Video, photo and press</p></header>'+
+    '<nav class="hl-row rule" aria-label="Highlights">'+MEDIA.map(ring).join('')+'</nav>'+
+    '<div class="mgrid">'+MEDIA.map(h=>h.items.map((it,i)=>tile(h,it,i)).join('')).join('')+'</div>'+
+    '<p class="note">Placeholders. Real photos and videos replace these.</p>';
+}
+const sv=document.createElement('div');sv.className='sv';sv.setAttribute('role','dialog');sv.setAttribute('aria-modal','true');sv.setAttribute('aria-label','Highlight');
+sv.innerHTML='<button type="button" class="sv-nav prev" aria-label="Back"><svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true"><path d="M8 1 3 6l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>'+
+  '<div class="sv-frame"><div class="sv-media"></div><div class="sv-bars"></div>'+
+  '<div class="sv-head"><span class="sv-id"></span><span class="sv-sub"></span><span class="sv-sp"></span>'+
+  '<button type="button" class="sv-snd" aria-label="Mute">'+ICON_SND(true)+'</button><button type="button" class="sv-x" aria-label="Close">'+ICON_X+'</button></div>'+
+  '<button type="button" class="sv-tapsnd" hidden>Tap for sound</button></div>'+
+  '<button type="button" class="sv-nav next" aria-label="Next"><svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true"><path d="M4 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>';
+document.body.appendChild(sv);
+const svFrame=sv.querySelector('.sv-frame'),svMedia=sv.querySelector('.sv-media'),svBars=sv.querySelector('.sv-bars'),svSnd=sv.querySelector('.sv-snd'),svTap=sv.querySelector('.sv-tapsnd');
+const svVid=document.createElement('video');svVid.playsInline=true;svVid.setAttribute('playsinline','');svVid.preload='auto';
+let svOn=false,svH=0,svI=0,svT=0,svPaused=false,svMuted=false,svMusicWas=false,svOpener=null,svLast=0,svFade=null;
+function svItem(){return MEDIA[svH].items[svI]}
+function svSetPaused(p){svPaused=p;if(svItem().type==='video'){if(p)svVid.pause();else svVid.play().catch(()=>{})}}
+function svSyncSnd(){svSnd.innerHTML=ICON_SND(!svMuted);svSnd.setAttribute('aria-label',svMuted?'Unmute':'Mute');svSnd.hidden=svItem().type!=='video'}
+function svShow(){
+  const h=MEDIA[svH],it=svItem();storySeen.add(h.id);svT=0;svPaused=false;svTap.hidden=true;
+  sv.querySelector('.sv-id').textContent=h.id;sv.querySelector('.sv-sub').textContent=(svI+1)+'/'+h.items.length;
+  svBars.innerHTML=h.items.map((_,i)=>'<i><b style="width:'+(i<svI?100:0)+'%"></b></i>').join('');
+  svVid.pause();svMedia.innerHTML='';
+  if(it.type==='video'){svMedia.appendChild(svVid);
+    if(svVid.getAttribute('src')!==it.src)svVid.src=it.src;svVid.currentTime=0;svVid.muted=svMuted;
+    svVid.play().catch(()=>{svVid.muted=true;svVid.play().catch(()=>{});svTap.hidden=false});
+    if(it.sample){const s=document.createElement('span');s.className='sv-tag';s.textContent='Sample video';svMedia.appendChild(s)}}
+  else if(it.src){const im=document.createElement('img');im.src=it.src;im.alt='';im.draggable=false;svMedia.appendChild(im)}
+  else{const d=document.createElement('div');d.className='sv-ph';
+    d.innerHTML='<b>'+h.id+'</b><span>Photo '+(svI+1)+' of '+h.items.length+'</span><small>Media coming soon</small><small class="sv-hint">Tap right for next, left to go back. Hold to pause. Swipe down to close.</small>';svMedia.appendChild(d)}
+  const nx=h.items[svI+1];if(nx&&nx.type==='photo'&&nx.src)new Image().src=nx.src;
+  svSyncSnd()}
+function svNext(){if(svI<MEDIA[svH].items.length-1){svI++;svShow()}else if(svH<MEDIA.length-1){svH++;svI=0;svShow()}else closeStory()}
+function svPrev(){if(svI>0){svI--;svShow()}else if(svH>0){svH--;svI=0;svShow()}else svShow()}
+function svJump(d){const h=svH+d;if(h<0)return svShow();if(h>=MEDIA.length)return closeStory();svH=h;svI=0;svShow()}
+function svLoop(now){if(!svOn)return;const dt=Math.min((now-svLast)/1000,.1);svLast=now;
+  const it=svItem();let p=0;
+  if(it.type==='video'){p=svVid.duration?svVid.currentTime/svVid.duration:0}
+  else{if(!svPaused)svT+=dt;p=svT/PHOTO_SECS;if(p>=1){svNext();requestAnimationFrame(svLoop);return}}
+  const b=svBars.children[svI];if(b)b.firstChild.style.width=Math.min(100,p*100).toFixed(2)+'%';
+  requestAnimationFrame(svLoop)}
+svVid.addEventListener('ended',()=>{if(svOn)svNext()});
+function hushMusic(){svMusicWas=!bgm.paused;storyHush=true;clearInterval(svFade);
+  if(!svMusicWas)return;const v0=bgm.volume;let k=0;svFade=setInterval(()=>{k++;bgm.volume=Math.max(0,v0*(1-k/6));if(k>=6){clearInterval(svFade);bgm.pause()}},50)}
+function restoreMusic(){clearInterval(svFade);storyHush=false;if(svMusicWas)playMusic();else bgm.volume=.6}
+function openStory(id,i){const h=MEDIA.findIndex(x=>x.id===id);if(h<0)return;
+  svOpener=document.activeElement;svH=h;svI=i||0;svOn=true;sv.classList.add('on');document.documentElement.classList.add('sv-open');
+  hushMusic();SFX.select();
+  /* start the video element inside the tap so later videos may play with sound */
+  if(svItem().type!=='video'){const v=MEDIA.flatMap(x=>x.items).find(x=>x.type==='video');if(v){svVid.src=v.src;svVid.muted=false;const p=svVid.play();if(p&&p.catch)p.catch(()=>{});svVid.pause()}}
+  svShow();svLast=performance.now();requestAnimationFrame(svLoop);sv.querySelector('.sv-x').focus({preventScroll:true})}
+function closeStory(){if(!svOn)return;svOn=false;sv.classList.remove('on');document.documentElement.classList.remove('sv-open');
+  svVid.pause();svVid.removeAttribute('src');svVid.load();svMedia.innerHTML='';restoreMusic();
+  pgText.querySelectorAll('.hl').forEach(b=>b.classList.toggle('seen',storySeen.has(b.dataset.hl)));
+  if(svOpener&&svOpener.focus&&document.contains(svOpener))svOpener.focus({preventScroll:true})}
+/* taps: left third goes back, the rest goes forward; hold pauses; swipe down closes; swipe sideways changes highlight */
+let svPt=null,svHold=null,svHeld=false;
+svFrame.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;svPt={x:e.clientX,y:e.clientY,id:e.pointerId};svHeld=false;
+  clearTimeout(svHold);svHold=setTimeout(()=>{svHeld=true;svSetPaused(true)},220)});
+svFrame.addEventListener('pointerup',e=>{if(!svPt||svPt.id!==e.pointerId)return;clearTimeout(svHold);const dx=e.clientX-svPt.x,dy=e.clientY-svPt.y;svPt=null;
+  if(dy>70&&dy>Math.abs(dx)){closeStory();return}
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){if(svHeld)svPaused=false;svJump(dx<0?1:-1);return}
+  if(svHeld){svHeld=false;svSetPaused(false);return}
+  const r=svFrame.getBoundingClientRect();if(e.clientX-r.left<r.width/3)svPrev();else svNext()});
+svFrame.addEventListener('pointercancel',()=>{clearTimeout(svHold);svPt=null;if(svHeld){svHeld=false;svSetPaused(false)}});
+svFrame.addEventListener('contextmenu',e=>e.preventDefault());
+sv.querySelector('.sv-x').addEventListener('click',closeStory);
+sv.querySelector('.sv-nav.prev').addEventListener('click',svPrev);sv.querySelector('.sv-nav.next').addEventListener('click',svNext);
+svSnd.addEventListener('click',()=>{svMuted=!svMuted;svVid.muted=svMuted;svSyncSnd()});
+svTap.addEventListener('click',()=>{svMuted=false;svVid.muted=false;svTap.hidden=true;svSyncSnd()});
+document.addEventListener('keydown',e=>{if(!svOn)return;
+  if(e.key==='Escape'){e.preventDefault();closeStory()}
+  else if(e.key==='ArrowRight'){e.preventDefault();svNext()}
+  else if(e.key==='ArrowLeft'){e.preventDefault();svPrev()}
+  else if(e.key===' '&&!e.target.closest('button')){e.preventDefault();svSetPaused(!svPaused)}},true);
+document.addEventListener('visibilitychange',()=>{if(svOn&&document.hidden)svSetPaused(true)});
+
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.page [data-hl]');if(b)openStory(b.dataset.hl,+(b.dataset.i||0))});
+
 const TEXT={
  about:'<header class="ptitle rule"><h1>About</h1><p>Cite Soleil</p></header><section class="psec rule"><div><p>Soleil is a creative world where fashion, music, skate culture, art, and nightlife meet.</p><p>'+F('MORE ABOUT SOLEIL')+'</p></div></section>',
  faq:'<header class="ptitle rule"><h1>FAQ</h1><p>Answers coming before launch</p></header>'+
@@ -204,7 +305,7 @@ const TEXT={
    .map(q=>'<section class="psec rule"><div><h2>'+q[0]+'</h2><p>'+F(q[1])+'</p></div></section>').join('')+
    '<section class="psec rule"><div><h2>How do I get early access?</h2><p>Join SMS on the <a href="#home" style="color:inherit">homepage</a>.</p></div></section>',
  campaigns:'<header class="ptitle rule"><h1>Campaigns</h1><p>Lookbooks and launches</p></header><div class="cards">'+['01','02','03','04'].map(n=>'<div class="card"><span>Campaign '+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
- media:'<header class="ptitle rule"><h1>Media</h1><p>Video, photo and press</p></header><div class="cards">'+['Video','Photo','Press','Event recap'].map(n=>'<div class="card"><span>'+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
+ get media(){return mediaHTML()},
  more:'<header class="ptitle rule"><h1>More</h1><p>Every page in one place</p></header><nav class="links" aria-label="All pages">'+
    [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
    '<a href="shipping/">Shipping</a><a href="refunds/">Refunds</a><a href="terms/">Terms</a><a href="privacy/">Privacy</a><a href="https://instagram.com/soleilsportswear" target="_blank" rel="noopener">Instagram</a></nav>'
@@ -495,7 +596,7 @@ mbPlay.addEventListener('click',e=>{e.stopPropagation();
   if(bgm.paused){musicOn=true;try{localStorage.setItem('ssw-music','on')}catch(_){}playMusic()}
   else{musicOn=false;try{localStorage.setItem('ssw-music','off')}catch(_){}bgm.pause()}
   syncMusicBtn()});
-function playMusic(){if(!musicOn)return;bgm.volume=.6;const p=bgm.play();if(p&&p.then)p.then(()=>{musicStarted=true;musicReady=true;syncMusicBtn()}).catch(()=>{})}
+function playMusic(){if(!musicOn||storyHush)return;bgm.volume=.6;const p=bgm.play();if(p&&p.then)p.then(()=>{musicStarted=true;musicReady=true;syncMusicBtn()}).catch(()=>{})}
 /* playlist: plays in order, then starts over. Add files here to add tracks. */
 const TRACKS=['music.mp3','music2.mp3','music3.m4a'];
 let trackIdx=0,trackFails=0;
@@ -703,6 +804,7 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
 /* router */
 const LEGAL_PAGES=['privacy','terms','refunds','shipping'];
 function route(){
+  closeStory();
   let r=(location.hash.slice(1)||'home').toLowerCase();
   /* old #privacy, #terms, #refunds and #shipping links go to the standalone pages */
   if(LEGAL_PAGES.includes(r)){location.replace(r+'/');return}
