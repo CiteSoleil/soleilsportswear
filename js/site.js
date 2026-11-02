@@ -544,15 +544,13 @@ function disintegrate(el,done){
     if(k<STEPS)setTimeout(tick,55);else done()};
   tick();
 }
-function resetConsent(el){el.hidden=false;el.style.webkitMaskImage=el.style.maskImage=el.style.webkitMaskSize=el.style.maskSize=''}
-/* hold the homepage box where it is while the consent text collapses, so the phone field does not jump */
-function anchorSignup(){const st=stage.getBoundingClientRect(),r=signup.getBoundingClientRect();
-  signup.style.top=(r.top-st.top)+'px';signup.style.bottom='auto';signup.style.margin='0 auto'}
-addEventListener('resize',()=>{signup.style.top=signup.style.bottom=signup.style.margin=''});
+function resetConsent(el){el.hidden=false;el.style.display='';el.style.webkitMaskImage=el.style.maskImage=el.style.webkitMaskSize=el.style.maskSize=''}
+function toast(t,ms){const el=document.getElementById('bToast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),ms||2600)}
+/* hold the pop-up where it is while its form collapses, so it does not jump */
 function anchorPop(){const r=popEl.getBoundingClientRect();popEl.style.transition='none';popEl.style.top=r.top+'px';popEl.style.transform='translate(-50%,0)';void popEl.offsetWidth;popEl.style.transition=''}
 /* the consent text and its unchecked checkbox stay in place; messages go in the line below them */
-function wireSms(form,input,box,msg,source,anchor,onJoined){let busy=false;
-  const say=t=>{msg.textContent=t};const lab=box.closest('.consent');
+function wireSms(form,input,box,msg,source,onSuccess){let busy=false;
+  const say=t=>{msg.textContent=t};
   box.addEventListener('change',()=>{if(box.checked&&msg.dataset.need)say('')});
   form.addEventListener('submit',e=>{e.preventDefault();if(busy)return;delete msg.dataset.need;
     const v=input.value.replace(/\D/g,'');
@@ -560,19 +558,22 @@ function wireSms(form,input,box,msg,source,anchor,onJoined){let busy=false;
     if(!box.checked){msg.dataset.need='1';say('Check the box to agree to texts before joining.');SFX.deny();return}
     if(!KLAVIYO_PUBLIC_KEY||!KLAVIYO_SMS_LIST){say('Sign-up opens soon. Nothing was sent.');SFX.deny();return}
     busy=true;const btn=form.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
-    smsSubscribe(v,source).then(()=>{input.value='';SFX.add();say('');
-        disintegrate(lab,()=>{anchor();lab.hidden=true;box.checked=false;say('You’re in. Watch for a text from Soleilsportswear.');if(window._fillSideArt)window._fillSideArt()});
-        if(onJoined)onJoined()})
+    smsSubscribe(v,source).then(()=>{input.value='';box.checked=false;say('');SFX.add();onSuccess(say)})
       .catch(()=>{say('That didn’t go through. Check the number and try again.');SFX.deny()})
       .finally(()=>{busy=false;if(btn)btn.disabled=false})});
 }
-wireSms(signup,document.getElementById('phone'),document.getElementById('smsOk'),document.getElementById('fine'),'Homepage',anchorSignup,()=>{
-  /* on the video page the sign-up box hides once someone joins */
-  if(!appEl.classList.contains('vid-on'))return;
-  setTimeout(()=>{appEl.classList.add('vid-joined');const el=document.getElementById('bToast');el.textContent='You’re in. Enjoy the video';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2200)},900)});
-wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),document.getElementById('popOk'),document.getElementById('popFine'),'Pop-up',anchorPop);
+/* homepage and video page: the whole sign-up box breaks apart in pixel squares and is gone */
+wireSms(signup,document.getElementById('phone'),document.getElementById('smsOk'),document.getElementById('fine'),'Homepage',()=>{
+  signup.style.pointerEvents='none';
+  disintegrate(signup,()=>{signup.style.display='none';appEl.classList.add('vid-joined');
+    toast(appEl.classList.contains('vid-on')?'You’re in. Enjoy the video':'You’re in. Watch for a text');
+    if(window._fillSideArt)window._fillSideArt()})});
+/* pop-up: the form and consent break apart, the confirmation stays in the pop-up */
+wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),document.getElementById('popOk'),document.getElementById('popFine'),'Pop-up',say=>{
+  const parts=[document.getElementById('popForm'),document.getElementById('popOk').closest('.consent')];let left=parts.length;
+  parts.forEach(el=>disintegrate(el,()=>{if(--left)return;anchorPop();parts.forEach(x=>x.style.display='none');say('You’re in. Watch for a text from Soleilsportswear.')}))});
 /* the pop-up starts fresh each time it closes */
-function resetPop(){setTimeout(()=>{if(appEl.classList.contains('pop-on'))return;popEl.style.top=popEl.style.transform='';resetConsent(document.getElementById('popOk').closest('.consent'));document.getElementById('popFine').textContent=''},250)}
+function resetPop(){setTimeout(()=>{if(appEl.classList.contains('pop-on'))return;popEl.style.top=popEl.style.transform='';resetConsent(document.getElementById('popOk').closest('.consent'));resetConsent(document.getElementById('popForm'));document.getElementById('popFine').textContent=''},250)}
 const bgv=document.getElementById('bgv');let vidLoaded=false;
 bgv.addEventListener('error',()=>appEl.classList.add('vid-err'));
 function showVideo(on){
