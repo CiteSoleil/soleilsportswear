@@ -575,7 +575,7 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
   function fill(){const h=innerHeight;el.textContent=unit;el.style.bottom='auto';const bh=el.offsetHeight||1;el.style.bottom='';const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n')}
   fill();addEventListener('resize',()=>{clearTimeout(fill.t);fill.t=setTimeout(fill,150)});window._fillSideArt=fill})();
 
-/* ---------- Pixel clouds (landing page) ---------- */
+/* ---------- Pixel clouds (landing page and lock screen) ---------- */
 (function(){const box=document.getElementById('clouds');if(!box)return;
   /* each cloud is a pixel grid: # is a filled block. Wider at the bottom, stepped at the top. */
   const SHAPES=[
@@ -585,10 +585,11 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
     ['           ######              ','     ###  ##########           ','   #######################     ','  ##########################   ',' ############################# ','###############################','###############################'],
     ['   ####    ',' ######### ','###########'],
     ['       ###  ####     ','    ##############   ','  ################## ',' ####################','#####################']];
-  /* top as % of the cloud band, size multiplier, seconds per crossing, start offset 0 to 1 */
-  const LAYOUT=[[2,1,150,.1],[14,1.2,210,.55],[34,.8,120,.8],[0,1.4,260,.3],[46,.7,105,.4],[24,1,175,.95]];
+  /* shape, top as % of the screen, size multiplier, seconds per crossing, start offset 0 to 1 */
+  const LAYOUT=[[0,2,1,150,.1],[1,8,1.2,210,.55],[2,20,.8,120,.8],[3,0,1.4,260,.3],[4,30,.7,105,.4],[5,14,1,175,.95],
+    [2,40,1,190,.2],[0,50,.9,140,.65],[5,60,1.1,230,.05],[4,70,.8,115,.75],[1,78,1.3,250,.45],[3,88,1,200,.85]];
   const NS='http://www.w3.org/2000/svg';
-  SHAPES.forEach((rows,i)=>{const w=rows[0].length,h=rows.length,[top,k,dur,off]=LAYOUT[i];
+  LAYOUT.forEach(([si,top,k,dur,off],i)=>{const rows=SHAPES[si],w=rows[0].length,h=rows.length;
     let d='';rows.forEach((r,y)=>{r.replace(/#+/g,(m,x)=>{d+='M'+x+' '+y+'h'+m.length+'v1h-'+m.length+'z';return m})});
     const svg=document.createElementNS(NS,'svg');svg.setAttribute('class','cloud');svg.setAttribute('viewBox','0 0 '+w+' '+h);
     /* light shade dither: two small dots per block, offset like a checkerboard */
@@ -703,6 +704,7 @@ function route(){
   if(!ROUTES.includes(r))r='home';
   const home=r==='home'||r==='video';
   document.documentElement.classList.toggle('is-home',home);
+  document.documentElement.classList.toggle('show-clouds',home||isLocked(r));
   stage.hidden=!home;foot.hidden=!home;showVideo(r==='video'&&(unlocked||OPEN_ROUTES.includes(r)));
   curRoute=r;
   const locked=isLocked(r);
