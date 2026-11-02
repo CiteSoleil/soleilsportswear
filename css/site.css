@@ -276,7 +276,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 @media (prefers-reduced-motion:reduce){.music.playing .on{animation:none}}
 
 /* ---------- Archive: deconstructed tech pack ---------- */
-#pg-archive{--grid:rgba(0,0,0,.08);--red:#E1251B;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
+#pg-archive{--grid:rgba(0,0,0,.08);--red:#E1251B;background-color:transparent;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #pg-archive{--grid:rgba(255,255,255,.08)}}
 :root[data-theme="dark"] #pg-archive{--grid:rgba(255,255,255,.08)}
 .ar-head{padding:28px var(--pad) 10px}
@@ -341,9 +341,9 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .ar-body .fill{font-size:.72rem}
 @media (prefers-reduced-motion:reduce){.ar-card{transition:none}}
 
-/* pixel clouds: landing page and lock screen, behind everything */
+/* pixel clouds: every page except the booth and video, behind everything */
 html:not(.show-clouds) .clouds{display:none}
-#pg-lock{position:relative;z-index:1}
+.page{position:relative;z-index:1}
 .clouds{position:fixed;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;overflow:hidden;color:#B7B7B7;opacity:.55;--cell:9px}
 @media (max-width:640px){.clouds{--cell:6px}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .clouds{color:#E4E4E4;opacity:.32}}
