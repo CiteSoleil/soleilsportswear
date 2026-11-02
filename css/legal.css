@@ -1,0 +1,29 @@
+/* Standalone legal pages (privacy, terms, refunds, shipping). No JavaScript needed.
+   Colors, type and section styles match the text pages in css/site.css. */
+:root{--bg:#F9F9F9;--ink:#0B0B0B;--muted:#5E5E5E;--line:#B7B7B7;--red:#E1251B;--pad:16px;--rule:1.5px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0B0B0B;--ink:#F9F9F9;--muted:#B7B7B7;--line:#5E5E5E;color-scheme:dark}}
+@media (min-width:720px){:root{--pad:28px}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;text-transform:uppercase;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+a{color:inherit}
+a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px var(--pad)}
+.top .wmk{display:block;width:min(220px,52vw);height:auto;color:var(--red)}
+.top .back{font-weight:700;letter-spacing:-.03em;font-size:17px;color:var(--red);text-decoration:none;white-space:nowrap}
+.rule{border-bottom:var(--rule) solid var(--ink)}
+.rule-t{border-top:var(--rule) solid var(--ink)}
+.ptitle{padding:36px var(--pad) 24px}
+.ptitle h1{font-weight:400;font-size:clamp(2.1rem,8.5vw,4.5rem);line-height:1.02;letter-spacing:-.02em;margin:0 0 12px}
+.ptitle p{margin:0;font-size:.8rem;color:var(--muted)}
+.psec{padding:22px var(--pad) 26px}
+.psec>div{max-width:68ch}
+.psec h2{font-weight:500;font-size:.95rem;margin:0 0 10px}
+.psec p,.psec li{text-transform:none;font-size:.9rem;line-height:1.7;margin:0 0 10px}
+.psec ul{margin:0 0 10px;padding-left:1.2em}
+.psec li{margin:0 0 4px}
+.fill{outline:1px dashed var(--muted);outline-offset:1px;padding:0 3px;color:var(--muted)}
+.links a{display:flex;justify-content:space-between;padding:16px var(--pad);color:var(--ink);text-decoration:none;font-size:1.05rem;border-bottom:var(--rule) solid var(--ink)}
+.links a::after{content:"\2192"}
+.links a[aria-current="page"]{color:var(--muted)}

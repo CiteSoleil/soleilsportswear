@@ -28,7 +28,8 @@ const NOTE='Stand-in for a product. On the real site, this opens the product pag
 const MOCKNOTE='Mock shape only. Your real product photo goes here.';
 const stage=document.getElementById('stage');
 const signup=document.getElementById('signup');
-signup.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('phone').value.replace(/\D/g,'');document.getElementById('fine').textContent=v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.'});
+const FINE_LINKS=' <a href="terms/">Terms</a> &amp; <a href="privacy/">Privacy</a>.';
+signup.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('phone').value.replace(/\D/g,'');document.getElementById('fine').innerHTML=(v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.')+FINE_LINKS});
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let z=10, els=[];
 /* Pile piece size: desktop (wider than 900px) and phone/tablet. 1 = original phone size. */
@@ -201,52 +202,11 @@ const TEXT={
  media:'<header class="ptitle rule"><h1>Media</h1><p>Video, photo and press</p></header><div class="cards">'+['Video','Photo','Press','Event recap'].map(n=>'<div class="card"><span>'+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
  more:'<header class="ptitle rule"><h1>More</h1><p>Every page in one place</p></header><nav class="links" aria-label="All pages">'+
    [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['archive','Archive'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
-   '<a href="#shipping">Shipping</a><a href="#refunds">Refunds</a><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="https://instagram.com/soleilsportswear" target="_blank" rel="noopener">Instagram</a></nav>'
+   '<a href="shipping/">Shipping</a><a href="refunds/">Refunds</a><a href="terms/">Terms</a><a href="privacy/">Privacy</a><a href="https://instagram.com/soleilsportswear" target="_blank" rel="noopener">Instagram</a></nav>'
 };
 
-const BIZ=F('LEGAL BUSINESS NAME'),EMAIL=F('CONTACT EMAIL'),ADDR=F('MAILING ADDRESS');
-const P=(title,sub,secs)=>'<header class="ptitle rule"><h1>'+title+'</h1><p>'+sub+' / Effective '+F('DATE')+'</p></header>'+
-  '<section class="psec rule"><div><p class="fill" style="display:inline-block">Draft. Fill in the boxes and have a lawyer review before launch.</p></div></section>'+
-  secs.map(s=>'<section class="psec rule"><div><h2>'+s[0]+'</h2>'+s[1]+'</div></section>').join('');
-const p=s=>'<p>'+s+'</p>';
-Object.assign(TEXT,{
- terms:P('Terms','Terms of service',[
-  ['Who we are',p('soleilsportswear.com is run by '+BIZ+' (Cite Soleil, soleilsportswear, we, us). By using this site or buying from us, you agree to these terms.')],
-  ['Orders and pricing',p('Prices are in US dollars and can change at any time. We may cancel an order because of a pricing error, a stock problem, or suspected fraud. If we cancel, you get a full refund.')],
-  ['Pre-orders',p('Pre-order items ship after the in-stock items sell out. Estimated ship dates are listed on each product and can change. Pre-orders are charged '+F('AT CHECKOUT OR AT SHIPMENT')+'. See the <a href="#refunds" style="color:inherit">Refund policy</a> for cancellations.')],
-  ['Text messages',p('If you join our SMS list, you agree to get recurring automated marketing texts from '+BIZ+' at the number you give us. Consent is not a condition of purchase. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.')],
-  ['Our designs',p('All designs, logos, graphics, photos and text on this site belong to '+BIZ+'. You may not copy or resell them without written permission.')],
-  ['Limits and law',p('The site is provided as is. To the extent the law allows, we are not liable for indirect damages. These terms are governed by the laws of '+F('STATE')+'.')],
-  ['Contact',p(EMAIL+'<br>'+ADDR)]
- ]),
- privacy:P('Privacy','Privacy policy',[
-  ['What we collect',p('Your name, email, phone number, shipping and billing address when you order or sign up. Basic device and browsing data through cookies and tracking pixels. We never see your full card number; payments are handled by our payment processors.')],
-  ['How we use it',p('To process and ship orders, send updates, run our SMS and email lists, improve the site, and show ads to people likely to care about the brand.')],
-  ['Who we share it with',p('Companies that help us run the store: Shopify, payment processors, shipping carriers, our SMS provider '+F('SMS PROVIDER')+', and ad platforms such as Meta. We do not sell your personal information.')],
-  ['Text messages',p('Mobile numbers and SMS consent are never shared with or sold to third parties for their own marketing.')],
-  ['Your choices',p('Reply STOP to leave SMS, use the unsubscribe link in any email, or block cookies in your browser. To see, correct or delete your data, email '+EMAIL+'.')],
-  ['Kids',p('This site is not meant for children under 13, and we do not knowingly collect their information.')],
-  ['Contact',p(EMAIL+'<br>'+ADDR)]
- ]),
- refunds:P('Refunds','Refund and return policy',[
-  ['Return window',p('You can return unworn items with tags attached within '+F('NUMBER')+' days of delivery.')],
-  ['Final sale',p(F('LIST ANY FINAL SALE ITEMS, FOR EXAMPLE LIMITED DROPS OR ONE-OF-ONES'))],
-  ['Pre-order cancellations',p(F('CAN PRE-ORDERS BE CANCELLED, AND UNTIL WHEN'))],
-  ['How to start a return',p('Email '+EMAIL+' with your order number. We will send instructions. Return shipping is paid by '+F('CUSTOMER OR US')+'.')],
-  ['Refunds',p('Once we receive and check your return, we refund the original payment method within '+F('NUMBER')+' business days. Original shipping is not refunded.')],
-  ['Exchanges',p(F('DO YOU OFFER SIZE EXCHANGES'))],
-  ['Damaged or wrong items',p('Email us within '+F('NUMBER')+' days of delivery with photos and we will make it right at no cost to you.')]
- ]),
- shipping:P('Shipping','Shipping policy',[
-  ['Where we ship',p(F('US ONLY, OR LIST COUNTRIES'))],
-  ['Processing time',p('In-stock orders ship within '+F('NUMBER')+' business days. Pre-orders ship by the estimated date on the product page.')],
-  ['Rates',p(F('SHIPPING RATES')+' Free shipping on orders over '+F('AMOUNT')+'.')],
-  ['Tracking',p('You get a tracking link by email'+' and text if you joined SMS, as soon as your order ships.')],
-  ['International orders',p('Customs duties and import taxes are paid by '+F('CUSTOMER OR US')+'.')],
-  ['Lost or stolen packages',p('Contact the carrier first, then email '+EMAIL+' and we will help. We are not responsible for packages marked delivered to the address you gave us.')]
- ])
-});
-const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','terms','privacy','refunds','shipping','booth','video','archive'];
+/* Privacy, Terms, Refunds and Shipping are standalone pages in their own folders (privacy/, terms/, refunds/, shipping/). */
+const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','video','archive'];
 const pgShop=document.getElementById('pg-shop'),pgText=document.getElementById('pg-text'),foot=document.querySelector('footer');
 let scattered=false,pendingShape=null,lastRoute=null;
 
@@ -482,7 +442,7 @@ const CODE_HASH='c598a6e2835e5ce64f29fd9395b3848cb70b707790b482bdb2ea5a41bfca889
 /* Archive has its own code; the main code does not open it */
 const ARCHIVE_HASH='b22a9799327ae5c2ede95de1e1943426c145a79ec6f6735b3465b5e0127715cc';
 const SITE_SET=window.SOLEIL_SETTINGS||{};
-const OPEN_ROUTES=['terms','privacy'].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
+const OPEN_ROUTES=[].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
 const pgLock=document.getElementById('pg-lock');
 let unlocked=false;try{unlocked=localStorage.getItem('ssw-access')==='1'}catch(_){}
 let archiveUnlocked=false;try{archiveUnlocked=localStorage.getItem('ssw-archive')==='1'}catch(_){}
@@ -503,7 +463,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closePop()});
 popEl.addEventListener('click',e=>{if(e.target.closest('a'))closePop()});
 document.getElementById('popForm').addEventListener('submit',e=>{e.preventDefault();
   const v=document.getElementById('popPhone').value.replace(/\D/g,'');
-  document.getElementById('popFine').textContent=v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.';
+  document.getElementById('popFine').innerHTML=(v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.')+FINE_LINKS;
   if(v.length>=10)SFX.add();else SFX.deny()});
 document.getElementById('lockSms').onclick=openPop;
 document.getElementById('lockForm').addEventListener('submit',async e=>{
@@ -702,8 +662,11 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeArchive()});
 (function(){const l=document.querySelector('.side-art');if(!l)return;const r=l.cloneNode(true);r.classList.add('right');l.parentNode.insertBefore(r,l.nextSibling);
   new MutationObserver(()=>{r.textContent=l.textContent}).observe(l,{childList:true,characterData:true,subtree:true})})();
 /* router */
+const LEGAL_PAGES=['privacy','terms','refunds','shipping'];
 function route(){
   let r=(location.hash.slice(1)||'home').toLowerCase();
+  /* old #privacy, #terms, #refunds and #shipping links go to the standalone pages */
+  if(LEGAL_PAGES.includes(r)){location.replace(r+'/');return}
   if(r==='random'){randomHits++;if(randomHits>=randomTarget){randomHits=0;randomTarget=1+Math.floor(Math.random()*2);
       const sp=lastSpecial?(lastSpecial==='booth'?'video':'booth'):(Math.random()<.5?'booth':'video');lastSpecial=sp;
       location.replace('#'+sp);if(sp==='booth'&&unlocked)boothToast();return}

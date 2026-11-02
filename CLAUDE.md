@@ -77,6 +77,7 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 | `site-settings.js` | Which pages are open without the code, and whether the homepage is locked | **Stevens** (Claude can explain it) |
 | `music.mp3` | Background music, loops site-wide | Stevens supplies |
 | `video.mp4` | Background video for the video page (muted) | Stevens supplies |
+| `privacy/`, `terms/`, `refunds/`, `shipping/` | Standalone legal pages (each folder has its own `index.html`), styled by `css/legal.css`. No JavaScript, never locked. | Claude |
 | `checklist.html` | Tester checklist (Pass, Fail, Skip, send results) | Claude, when features change |
 | `sticker_03.png` etc. | Images referenced by `my-items.js` | Stevens |
 
@@ -87,20 +88,21 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 ## 5. How the site works
 
 **One page, hash routes.** Every "page" is a section shown or hidden by `route()` on `hashchange`. Routes:
-`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `archive`, `about`, `faq`, `more`, `cart`, `terms`, `privacy`, `refunds`, `shipping`, `booth`, `video`, plus `random` (redirects).
+`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `archive`, `about`, `faq`, `more`, `cart`, `booth`, `video`, plus `random` (redirects).
+Old `#privacy`, `#terms`, `#refunds` and `#shipping` links redirect to the standalone pages (`LEGAL_PAGES` in `route()`). Link to them as `privacy/`, `terms/`, `refunds/`, `shipping/` (relative paths, so they also work on the github.io test link).
 Because it is one document, music keeps playing between pages. Keep that true in any rebuild (page transitions if pages become separate files or a Shopify theme).
 
 **Top banner (menu)** and **bottom banner** ("JOIN SMS FOR EARLY ACCESS TO EXCLUSIVE DROPS & GIVEAWAYS"): red, Helvetica Bold, the top one includes the real wordmark SVG. Both auto-scroll in opposite directions. Hold to stop, drag to scrub, release to resume. A quick tap on a menu word navigates; a drag never does.
 
 **Homepage pile.** Draggable pieces (the `ITEMS` array). One finger drags and flicks. Two fingers rotate and resize. Desktop scroll or trackpad pinch resizes. Tap opens a slide-up panel; red mock garments open their shop page instead. Shuffle rescatters. Pieces avoid the sign-up box when scattered and pass **under** it when dragged. Piece size is set by `PILE_DESK` (desktop, currently .38) and `PILE_PHONE` (phone and tablet, currently .75) near the top of `js/site.js`.
 
-**Sign-up box** in the middle of the homepage: +1, numbers only, 10 digits, auto-formatted. Demo only (Section 7). Consent line links to Terms and Privacy.
+**Sign-up box** in the middle of the homepage: +1, numbers only, 10 digits, auto-formatted. Demo only (Section 7). Consent line links to `terms/` and `privacy/`, and the links stay after a submit message (`FINE_LINKS`). The same applies to the pop-up form and the video page (which reuses the homepage form). Small Privacy and Terms links also sit in the homepage footer and under the lock screen.
 
 **Braille art** repeats down the left side of the homepage behind the pile.
 
 **Music bar** above the bottom banner: play and pause icons (drawn SVG, not text symbols), scrolling waveform. Music starts on the first tap anywhere, loops, and remembers mute. A round speaker button covers other pages.
 
-**Lock.** Every page except the homepage, Terms and Privacy shows a lock screen. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: ssw-access`). **Archive has its own code: ARCHIVE** (also case-insensitive, SHA-256 hash only). SOLEIL does not open Archive and ARCHIVE opens nothing else; it is remembered separately (`localStorage: ssw-archive`). Listing `archive` in `openPages` still opens it without a code. `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
+**Lock.** Every page except the homepage shows a lock screen. The legal pages are separate files outside the app, so the lock and `site-settings.js` never touch them. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: ssw-access`). **Archive has its own code: ARCHIVE** (also case-insensitive, SHA-256 hash only). SOLEIL does not open Archive and ARCHIVE opens nothing else; it is remembered separately (`localStorage: ssw-archive`). Listing `archive` in `openPages` still opens it without a code. `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
 
 **Random.** Every 1st or 2nd tap lands on a surprise, alternating between the **video page** (same pile over `video.mp4`; the sign-up hides after a valid number) and the **3D booth** (three.js r128, loaded only when opened; views, tower tops, heights, colors, floor). Other taps land on regular pages.
 
@@ -110,7 +112,11 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Archive (Pynk Project).** Deconstructed tech pack: spec sheets (PP-001 codes, crop marks, measured dimensions, colorway swatches pulled from the art) on a board with the same drag, flick, rotate and resize as the homepage. Background grid: `rgba(0,0,0,0.08)` 1px lines, 40px, drifting diagonally at 25px per second (white lines in dark mode). Tap a sheet for full spec. Pulls every non-mock piece plus `my-items.js` pieces automatically.
 
-**Policy pages** (Terms, Privacy, Refunds, Shipping): drafts with dashed fill-in boxes. A lawyer must review before launch.
+**Policy pages** (Privacy, Terms, Refunds, Shipping): standalone static pages at `/privacy/`, `/terms/`, `/refunds/`, `/shipping/`. They load fully with JavaScript off (required for SMS carrier review). Leaving the app for them stops the music; that is expected. Business details: Cite Soleil LLC, admin@soleilsportswear.com, 450 Summer St, Brockton, MA 02302, Massachusetts law, effective November 1, 2026.
+- **Privacy** follows Klaviyo's SMS privacy guidance (help.klaviyo.com article 4404199571867): SMS program description (how numbers are collected, used, shared), Klaviyo's example third-party sharing clarification, Klaviyo named as SMS and marketing provider, and the `__kla_id` onsite tracking cookie.
+- **Terms** has the SMS program section (`#sms`): Soleil Early Access, drops, early access and giveaways, frequency varies, rates may apply, HELP and STOP, carriers not liable, consent not a condition of purchase, link to Privacy.
+- **Refunds and Shipping** still have dashed fill-in boxes and a Draft note.
+- A lawyer should review all four before launch.
 
 **Other:** dark mode supported everywhere; reduced motion respected; safe-area insets for phones; Instagram links to instagram.com/soleilsportswear.
 
@@ -128,7 +134,8 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 ## 7. Open items
 
-- **SMS is not connected.** The sign-up boxes collect nothing yet. Klaviyo (or Postscript) needs an account, SMS sender approval, and the form wired to its subscribe API. Do not collect numbers anywhere until consent wording matches the final SMS terms.
+- **SMS is not connected.** The sign-up boxes collect nothing yet. The provider is Klaviyo and the program is **Soleil Early Access**. Klaviyo needs an account, SMS sender approval, and the forms wired to its subscribe API. Do not collect numbers anywhere until consent wording matches the final SMS terms. Keep the "Demo only" text on the forms until they are actually connected to Klaviyo, then remove it.
+- **Abandoned cart disclosure.** When Shopify cart reminders (abandoned cart texts) start, add Klaviyo's abandoned cart disclosure to `privacy/index.html` (cookies track cart items, including when a cart is abandoned, to decide when to send reminder texts). Same for location tracking if it is ever used. Both were left out on purpose because neither is used yet.
 - International SMS is not decided (diaspora outreach matters). For now +1 covers the US and Canada.
 - Season pink, prices, FAQ answers, policy details, launch date: all OPEN.
 - Neue Helvetica webfont license.
