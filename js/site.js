@@ -28,8 +28,6 @@ const NOTE='Stand-in for a product. On the real site, this opens the product pag
 const MOCKNOTE='Mock shape only. Your real product photo goes here.';
 const stage=document.getElementById('stage');
 const signup=document.getElementById('signup');
-const FINE_LINKS=' <a href="terms/">Terms</a> &amp; <a href="privacy/">Privacy</a>.';
-signup.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('phone').value.replace(/\D/g,'');document.getElementById('fine').innerHTML=(v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.')+FINE_LINKS});
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let z=10, els=[];
 /* Pile piece size: desktop (wider than 900px) and phone/tablet. 1 = original phone size. */
@@ -55,7 +53,8 @@ function scatter(){
   const cw=Math.min(W*.96,1150),ch=Math.min(H*.94,cw*1.5,760);
   const x0=(W-cw)/2,y0=(H-ch)/2;
   const sb=signup.getBoundingClientRect(),st=stage.getBoundingClientRect();
-  const box={l:sb.left-st.left-6,t:sb.top-st.top-6,r:sb.right-st.left+6,b:sb.bottom-st.top+6};
+  /* keep pieces off the sign-up box so the consent text stays readable; extra room covers the random tilt */
+  const box={l:sb.left-st.left-18,t:sb.top-st.top-18,r:sb.right-st.left+18,b:sb.bottom-st.top+18};
   const placed=[];
   els.slice().sort(()=>Math.random()-.5).forEach(b=>{
     b._s=1;size(b);let best=null,bestScore=1e9;
@@ -63,7 +62,7 @@ function scatter(){
       const x=x0+Math.random()*(cw-b._w),y=y0+Math.random()*(ch-b._h);
       const r={l:x,t:y,r:x+b._w,b:y+b._h};
       const ov=(p,q)=>Math.max(0,Math.min(p.r,q.r)-Math.max(p.l,q.l))*Math.max(0,Math.min(p.b,q.b)-Math.max(p.t,q.t));
-      let s=ov(r,box)*6;placed.forEach(p=>s+=ov(r,p));
+      let s=ov(r,box)*60;placed.forEach(p=>s+=ov(r,p));
       if(s<bestScore){bestScore=s;best=r}
       if(s===0)break;
     }
@@ -461,10 +460,6 @@ document.getElementById('popClose').onclick=closePop;
 document.getElementById('popScrim').onclick=closePop;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePop()});
 popEl.addEventListener('click',e=>{if(e.target.closest('a'))closePop()});
-document.getElementById('popForm').addEventListener('submit',e=>{e.preventDefault();
-  const v=document.getElementById('popPhone').value.replace(/\D/g,'');
-  document.getElementById('popFine').innerHTML=(v.length>=10?'Demo only. Nothing was sent, but this is where the confirmation text would go out.':'Enter a 10 digit number to see how it works.')+FINE_LINKS;
-  if(v.length>=10)SFX.add();else SFX.deny()});
 document.getElementById('lockSms').onclick=openPop;
 document.getElementById('lockForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.currentTarget,inp=document.getElementById('code'),err=document.getElementById('lockErr');
@@ -512,11 +507,40 @@ musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{l
 bgm.load();
 
 /* ---------- Video page ---------- */
-signup.addEventListener('submit',()=>{
+/* ---------- SMS sign-up: Klaviyo ---------- */
+/* Fill in both values from Klaviyo to turn the sign-up forms on:
+   KLAVIYO_PUBLIC_KEY: Settings > Account > API keys > Public API key (6 characters, safe to publish)
+   KLAVIYO_SMS_LIST: the ID of the SMS list (open the list in Lists & segments; the ID is in the page address) */
+const KLAVIYO_PUBLIC_KEY='',KLAVIYO_SMS_LIST='';
+/* Klaviyo onsite tracking (described on the Privacy page) */
+if(KLAVIYO_PUBLIC_KEY){const ks=document.createElement('script');ks.async=true;ks.src='https://static.klaviyo.com/onsite/js/klaviyo.js?company_id='+encodeURIComponent(KLAVIYO_PUBLIC_KEY);document.head.appendChild(ks)}
+function smsSubscribe(digits,source){
+  if(!KLAVIYO_PUBLIC_KEY||!KLAVIYO_SMS_LIST)return Promise.reject(new Error('not set'));
+  return fetch('https://a.klaviyo.com/client/subscriptions/?company_id='+encodeURIComponent(KLAVIYO_PUBLIC_KEY),{method:'POST',
+    headers:{'Content-Type':'application/json',revision:'2024-10-15'},
+    body:JSON.stringify({data:{type:'subscription',attributes:{custom_source:source,
+      profile:{data:{type:'profile',attributes:{phone_number:'+1'+digits,subscriptions:{sms:{marketing:{consent:'SUBSCRIBED'},transactional:{consent:'SUBSCRIBED'}}}}}}},
+      relationships:{list:{data:{type:'list',id:KLAVIYO_SMS_LIST}}}}})})
+  .then(r=>{if(!r.ok)throw new Error('status '+r.status)})}
+/* the consent text and its unchecked checkbox stay in place; messages go in the line below them */
+function wireSms(form,input,box,msg,source,onJoined){let busy=false;
+  const say=t=>{msg.textContent=t};
+  box.addEventListener('change',()=>{if(box.checked&&msg.dataset.need)say('')});
+  form.addEventListener('submit',e=>{e.preventDefault();if(busy)return;delete msg.dataset.need;
+    const v=input.value.replace(/\D/g,'');
+    if(v.length!==10){say('Enter a 10 digit US or Canada mobile number.');SFX.deny();return}
+    if(!box.checked){msg.dataset.need='1';say('Check the box to agree to texts before joining.');SFX.deny();return}
+    if(!KLAVIYO_PUBLIC_KEY||!KLAVIYO_SMS_LIST){say('Sign-up opens soon. Nothing was sent.');SFX.deny();return}
+    busy=true;const btn=form.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
+    smsSubscribe(v,source).then(()=>{say('You’re in. Watch for a text from Soleilsportswear.');input.value='';box.checked=false;SFX.add();if(onJoined)onJoined()})
+      .catch(()=>{say('That didn’t go through. Check the number and try again.');SFX.deny()})
+      .finally(()=>{busy=false;if(btn)btn.disabled=false})});
+}
+wireSms(signup,document.getElementById('phone'),document.getElementById('smsOk'),document.getElementById('fine'),'Homepage',()=>{
+  /* on the video page the sign-up box hides once someone joins */
   if(!appEl.classList.contains('vid-on'))return;
-  const v=document.getElementById('phone').value.replace(/\D/g,'');if(v.length<10)return;
-  setTimeout(()=>{appEl.classList.add('vid-joined');const el=document.getElementById('bToast');el.textContent='You\u2019re in. Enjoy the video';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2200)},900);
-});
+  setTimeout(()=>{appEl.classList.add('vid-joined');const el=document.getElementById('bToast');el.textContent='You’re in. Enjoy the video';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2200)},900)});
+wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),document.getElementById('popOk'),document.getElementById('popFine'),'Pop-up');
 const bgv=document.getElementById('bgv');let vidLoaded=false;
 bgv.addEventListener('error',()=>appEl.classList.add('vid-err'));
 function showVideo(on){

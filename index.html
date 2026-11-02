@@ -75,7 +75,8 @@
     <form class="signup" id="signup" novalidate>
       <label for="phone">Join SMS</label>
       <div class="row"><span class="cc" aria-hidden="true">+1</span><input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" placeholder="(281) 330-8004" aria-label="Phone number, US or Canada"><button type="submit">Join</button></div>
-      <p class="fine" id="fine">Demo only. By joining you agree to get recurring automated marketing texts. Msg &amp; data rates may apply. Reply STOP to opt out. <a href="terms/">Terms</a> &amp; <a href="privacy/">Privacy</a>.</p>
+      <label class="consent" for="smsOk"><input type="checkbox" id="smsOk" name="sms_consent" value="yes"><span class="fine">By checking this box and joining, you agree to receive recurring automated informational (like order updates) and marketing texts from Soleilsportswear (Cite Soleil LLC) at this number, including texts sent by autodialer. Consent is not a condition of purchase. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. <a href="https://soleilsportswear.myklpages.com/p/mobile-terms-of-service" target="_blank" rel="noopener">Terms</a> &amp; <a href="privacy/">Privacy</a>.</span></label>
+      <p class="fine sms-msg" id="fine" aria-live="polite"></p>
     </form>
   </main>
   <section class="page" id="pg-shop" hidden aria-labelledby="name">
@@ -145,7 +146,8 @@
     <h2 id="popTitle">Get early access</h2>
     <p class="lead">Join SMS for early access to exclusive drops &amp; giveaways.</p>
     <form id="popForm" novalidate><span class="cc" aria-hidden="true">+1</span><input id="popPhone" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" placeholder="(281) 330-8004" aria-label="Phone number, US or Canada"><button type="submit">Join</button></form>
-    <p class="fine" id="popFine">Demo only. By joining you agree to get recurring automated marketing texts. Msg &amp; data rates may apply. Reply STOP to opt out. <a href="terms/">Terms</a> &amp; <a href="privacy/">Privacy</a>.</p>
+    <label class="consent" for="popOk"><input type="checkbox" id="popOk" name="sms_consent" value="yes"><span class="fine">By checking this box and joining, you agree to receive recurring automated informational (like order updates) and marketing texts from Soleilsportswear (Cite Soleil LLC) at this number, including texts sent by autodialer. Consent is not a condition of purchase. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. <a href="https://soleilsportswear.myklpages.com/p/mobile-terms-of-service" target="_blank" rel="noopener">Terms</a> &amp; <a href="privacy/">Privacy</a>.</span></label>
+    <p class="fine sms-msg" id="popFine" aria-live="polite"></p>
   </div>
 
   <div class="scrim" id="scrim"></div>

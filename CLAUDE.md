@@ -96,7 +96,9 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Homepage pile.** Draggable pieces (the `ITEMS` array). One finger drags and flicks. Two fingers rotate and resize. Desktop scroll or trackpad pinch resizes. Tap opens a slide-up panel; red mock garments open their shop page instead. Shuffle rescatters. Pieces avoid the sign-up box when scattered and pass **under** it when dragged. Piece size is set by `PILE_DESK` (desktop, currently .38) and `PILE_PHONE` (phone and tablet, currently .75) near the top of `js/site.js`.
 
-**Sign-up box** in the middle of the homepage: +1, numbers only, 10 digits, auto-formatted. Demo only (Section 7). Consent line links to `terms/` and `privacy/`, and the links stay after a submit message (`FINE_LINKS`). The same applies to the pop-up form and the video page (which reuses the homepage form). Small Privacy and Terms links also sit in the homepage footer and under the lock screen.
+**Sign-up box** in the middle of the homepage: +1, numbers only, 10 digits, auto-formatted. Sends to Klaviyo (Section 7). Every SMS form (homepage, pop-up, and the video page, which reuses the homepage form) has a separate, unchecked consent checkbox (`smsOk`, `popOk`) beside this exact consent text, and will not submit until it is checked:
+"By checking this box and joining, you agree to receive recurring automated informational (like order updates) and marketing texts from Soleilsportswear (Cite Soleil LLC) at this number, including texts sent by autodialer. Consent is not a condition of purchase. Msg frequency varies. Msg & data rates may apply. Reply HELP for help, STOP to cancel. Terms & Privacy."
+"Terms" links to Klaviyo's hosted mobile terms (https://soleilsportswear.myklpages.com/p/mobile-terms-of-service) and "Privacy" to `privacy/`. The text lives in `index.html` (twice); status messages go in the line below it (`#fine`, `#popFine`), so the consent text never changes. Small Privacy and Terms links also sit in the homepage footer and under the lock screen.
 
 **Braille art** repeats down the left side of the homepage behind the pile.
 
@@ -114,8 +116,9 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Policy pages** (Privacy, Terms, Refunds, Shipping): standalone static pages at `/privacy/`, `/terms/`, `/refunds/`, `/shipping/`. They load fully with JavaScript off (required for SMS carrier review). Leaving the app for them stops the music; that is expected. Business details: Cite Soleil LLC, admin@soleilsportswear.com, 450 Summer St, Brockton, MA 02302, Massachusetts law, effective November 1, 2026.
 - **Privacy** follows Klaviyo's SMS privacy guidance (help.klaviyo.com article 4404199571867): SMS program description (how numbers are collected, used, shared), Klaviyo's example third-party sharing clarification, Klaviyo named as SMS and marketing provider, and the `__kla_id` onsite tracking cookie.
-- **Terms** has the SMS program section (`#sms`): Soleil Early Access, drops, early access and giveaways, frequency varies, rates may apply, HELP and STOP, carriers not liable, consent not a condition of purchase, link to Privacy.
-- **Refunds and Shipping** still have dashed fill-in boxes and a Draft note.
+- **Terms** has the SMS program section (`#sms`): program name Soleilsportswear (matches Klaviyo's mobile terms), informational and marketing texts including by autodialer, drops, early access and giveaways, frequency varies, rates may apply, HELP and STOP, carriers not liable, consent not a condition of purchase, link to Privacy.
+- **Refunds**: all sales final, no refunds; size exchanges for items in the same condition, unworn, all tags attached. **Shipping**: worldwide, ships in 2 to 4 business days, rates calculated at checkout, customer pays duties. **Terms**: pre-orders charged at checkout. No fill-in boxes remain.
+- The pages are generated from one Python script during a Claude session (not in the repo); to change them, edit the four `index.html` files directly and keep them consistent.
 - A lawyer should review all four before launch.
 
 **Other:** dark mode supported everywhere; reduced motion respected; safe-area insets for phones; Instagram links to instagram.com/soleilsportswear.
@@ -134,7 +137,7 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 ## 7. Open items
 
-- **SMS is not connected.** The sign-up boxes collect nothing yet. The provider is Klaviyo and the program is **Soleil Early Access**. Klaviyo needs an account, SMS sender approval, and the forms wired to its subscribe API. Do not collect numbers anywhere until consent wording matches the final SMS terms. Keep the "Demo only" text on the forms until they are actually connected to Klaviyo, then remove it.
+- **SMS: Klaviyo.** The SMS program name is **Soleilsportswear** everywhere, to match Klaviyo's mobile terms. Do not use "Soleil Early Access" as a program name. The homepage, pop-up and video page forms post to Klaviyo's Client Subscriptions API (`smsSubscribe` and `wireSms` in `js/site.js`, source tagged Homepage or Pop-up; subscribes to both SMS marketing and transactional consent). They only work once `KLAVIYO_PUBLIC_KEY` (6 character public key) and `KLAVIYO_SMS_LIST` (SMS list ID) are filled in near the Video page code in `js/site.js`; until then a submit says "Sign-up opens soon. Nothing was sent." The same public key also loads Klaviyo's onsite script (the `__kla_id` cookie described on the Privacy page). If the consent wording changes, update both consent labels in `index.html`, the Terms SMS section and the Privacy SMS section together.
 - **Abandoned cart disclosure.** When Shopify cart reminders (abandoned cart texts) start, add Klaviyo's abandoned cart disclosure to `privacy/index.html` (cookies track cart items, including when a cart is abandoned, to decide when to send reminder texts). Same for location tracking if it is ever used. Both were left out on purpose because neither is used yet.
 - International SMS is not decided (diaspora outreach matters). For now +1 covers the US and Canada.
 - Season pink, prices, FAQ answers, policy details, launch date: all OPEN.
