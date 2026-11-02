@@ -511,7 +511,7 @@ bgm.load();
 /* Fill in both values from Klaviyo to turn the sign-up forms on:
    KLAVIYO_PUBLIC_KEY: Settings > Account > API keys > Public API key (6 characters, safe to publish)
    KLAVIYO_SMS_LIST: the ID of the SMS list (open the list in Lists & segments; the ID is in the page address) */
-const KLAVIYO_PUBLIC_KEY='',KLAVIYO_SMS_LIST='';
+const KLAVIYO_PUBLIC_KEY='Ymzppw',KLAVIYO_SMS_LIST='X6BhSq';
 /* Klaviyo onsite tracking (described on the Privacy page) */
 if(KLAVIYO_PUBLIC_KEY){const ks=document.createElement('script');ks.async=true;ks.src='https://static.klaviyo.com/onsite/js/klaviyo.js?company_id='+encodeURIComponent(KLAVIYO_PUBLIC_KEY);document.head.appendChild(ks)}
 function smsSubscribe(digits,source){
