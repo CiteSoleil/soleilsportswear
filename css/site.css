@@ -71,7 +71,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 @media (prefers-reduced-motion:reduce){.sheet,.scrim,.item img{transition:none}.marquee .track{animation:none}}
 
 /* ---------- Pages ---------- */
-.page{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;font-family:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;text-transform:uppercase;--pad:16px;--rule:1.5px;--red:#E1251B}
+.page{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;text-transform:uppercase;--pad:16px;--rule:1.5px;--red:#E1251B}
 @media (min-width:720px){.page{--pad:28px}}
 .page button{font:inherit;text-transform:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 .page button:focus-visible,.page a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
@@ -172,7 +172,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .b-sw button{width:30px!important;height:30px;border:var(--rule) solid var(--ink)!important;padding:0!important}
 .b-sw button[aria-pressed="true"]{outline:2.5px solid var(--red);outline-offset:2px}
 .b-dims{padding:6px var(--pad) 28px;font-size:.72rem;color:var(--muted);text-transform:none;line-height:1.6;margin:0;max-width:70ch}
-.b-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translate(-50%,-20px);background:var(--red);color:#fff;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.8rem;text-transform:uppercase;padding:10px 16px;z-index:9600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.b-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translate(-50%,-20px);background:var(--red);color:#fff;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:.8rem;text-transform:uppercase;padding:10px 16px;z-index:9600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 .b-toast.on{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- Lock + SMS popup ---------- */
@@ -190,7 +190,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .lock form.shake{animation:shake .24s steps(4)}
 .lock .alt{margin-top:18px;font-size:.75rem;text-decoration:underline;text-underline-offset:3px;color:var(--ink)}
 .pop-scrim{position:fixed;inset:0;background:rgba(11,11,11,.45);z-index:9700;opacity:0;pointer-events:none;transition:opacity .2s}
-.pop{position:fixed;left:50%;top:50%;z-index:9701;width:min(360px,calc(100% - 32px));transform:translate(-50%,-46%);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;background:var(--bg);border:var(--rule) solid var(--ink);padding:22px 18px 18px;font-family:"IBM Plex Mono",ui-monospace,monospace;text-transform:uppercase;--rule:1.5px}
+.pop{position:fixed;left:50%;top:50%;z-index:9701;width:min(360px,calc(100% - 32px));transform:translate(-50%,-46%);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;background:var(--bg);border:var(--rule) solid var(--ink);padding:22px 18px 18px;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;text-transform:uppercase;--rule:1.5px}
 .pop-on .pop-scrim{opacity:1;pointer-events:auto}
 .pop-on .pop{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 .pop .x{position:absolute;top:8px;right:8px;width:36px;height:36px;font-size:1.2rem;background:none;border:0;color:var(--ink);cursor:pointer}
@@ -213,9 +213,9 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .vid-on .signup input::placeholder{color:rgba(249,249,249,.7)}
 .vid-on .signup button{background:#F9F9F9;color:#0B0B0B}
 .vid-on footer button{background:rgba(11,11,11,.35);color:#F9F9F9;border-color:rgba(249,249,249,.6)}
-.vid-miss{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:2;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;text-transform:uppercase;color:#F9F9F9;background:rgba(11,11,11,.7);padding:6px 10px;display:none;white-space:nowrap}
+.vid-miss{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:2;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:11px;text-transform:uppercase;color:#F9F9F9;background:rgba(11,11,11,.7);padding:6px 10px;display:none;white-space:nowrap}
 .vid-on.vid-err .vid-miss{display:block}
-.mbar{position:relative;z-index:9000;display:flex;align-items:center;gap:4px;padding:2px 12px 0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans","Noto Sans Myanmar","Noto Music",sans-serif;font-size:15px;line-height:1.2;color:var(--ink);white-space:nowrap;overflow:hidden}
+.mbar{position:relative;z-index:9000;display:flex;align-items:center;gap:4px;padding:2px 12px 0;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,"Noto Sans Myanmar","Noto Music",sans-serif;font-size:15px;line-height:1.2;color:var(--ink);white-space:nowrap;overflow:hidden}
 .mbar[hidden]{display:none}
 #mbPlay,#mbSkip{flex:none;background:none;border:0;color:inherit;font:inherit;font-size:20px;line-height:1;min-width:38px;min-height:38px;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #mbPlay:focus-visible,#mbSkip:focus-visible{outline:2px solid var(--red,#E1251B);outline-offset:2px}
@@ -300,7 +300,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .sw{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sw i{width:12px;height:12px;border:1px solid var(--ink);display:inline-block}
 .ar-empty{padding:20px var(--pad);font-size:.8rem;color:var(--muted)}
-.ar-dlg{position:fixed;inset:0;z-index:9600;display:none;background:rgba(11,11,11,.5);font-family:"IBM Plex Mono",ui-monospace,monospace;text-transform:uppercase}
+.ar-dlg{position:fixed;inset:0;z-index:9600;display:none;background:rgba(11,11,11,.5);font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;text-transform:uppercase}
 .ar-dlg.on{display:block}
 .ar-sheet{position:absolute;inset:max(14px,env(safe-area-inset-top,0px)) 14px 14px;overflow:auto;background:var(--bg);border:var(--rule,1.5px) solid var(--ink);--rule:1.5px;--pad:16px;--grid:rgba(0,0,0,.08);--red:#E1251B;max-width:980px;margin:0 auto}
 .ar-sheet .ar-top{position:sticky;top:0;background:var(--bg);z-index:2;font-size:.75rem;padding:12px 14px;align-items:center}
