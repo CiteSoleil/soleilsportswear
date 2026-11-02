@@ -228,7 +228,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .mb-tail{flex:none}
 .vid-on .mbar{color:#F9F9F9;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 @media (prefers-reduced-motion:reduce){.mbar.playing .mb-wave span,#mbPlay.mb-bump,#mbSkip.mb-bump{animation:none}}
-.side-art{position:absolute;left:clamp(22px,7vw,110px);top:0;bottom:0;margin:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:clamp(9px,1.5vw,15px);line-height:1.08;letter-spacing:0;color:var(--ink);opacity:.9;white-space:pre}
+.side-art{position:fixed;left:clamp(22px,7vw,110px);top:0;bottom:0;margin:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:clamp(9px,1.5vw,15px);line-height:1.08;letter-spacing:0;color:var(--ink);opacity:.9;white-space:pre}
 .vid-on .side-art,.vid-on .clouds{display:none}
 @media (max-width:640px){.side-art{left:26px;font-size:9px}}
 .side-art.right{left:auto;right:clamp(22px,7vw,110px);transform:scaleX(-1)}

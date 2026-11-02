@@ -572,7 +572,7 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
 });
 /* ---------- Side art: repeat down the whole left side ---------- */
 (function(){const el=document.querySelector('.side-art');if(!el)return;const unit=el.textContent.replace(/\n+$/,'');
-  function fill(){const h=stage.clientHeight||innerHeight;el.textContent=unit;const bh=el.scrollHeight||1;const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n')}
+  function fill(){const h=innerHeight;el.textContent=unit;el.style.bottom='auto';const bh=el.offsetHeight||1;el.style.bottom='';const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n')}
   fill();addEventListener('resize',()=>{clearTimeout(fill.t);fill.t=setTimeout(fill,150)});window._fillSideArt=fill})();
 
 /* ---------- Pixel clouds (landing page) ---------- */
