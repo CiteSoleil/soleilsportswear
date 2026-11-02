@@ -8,7 +8,7 @@ Read this whole file before every session. It is the handoff from the claude.ai 
 
 The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 
-- **Main job:** a place where potential sponsors can see all of Soleil's creative work (events, campaigns, media, the Pynk Project archive).
+- **Main job:** a place where potential sponsors can see all of Soleil's creative work (events, campaigns, media).
 - **Second job:** showcase clothes and, later, sell them.
 - **Not public yet.** Visitors get in with a code that Stevens hands out. He opens specific pages for sponsor meetings.
 - **Live test link:** https://citesoleil.github.io/Soleil-Test/ (GitHub Pages, repo `Soleil-Test`, account `CiteSoleil`).
@@ -73,7 +73,7 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 | File | What it is | Who edits it |
 |---|---|---|
 | `index.html` | The whole site: HTML, CSS, JS and most images (embedded as data URIs) | Claude |
-| `my-items.js` | Extra pieces Stevens adds to the homepage pile and archive | **Stevens only** |
+| `my-items.js` | Extra pieces Stevens adds to the homepage pile | **Stevens only** |
 | `site-settings.js` | Which pages are open without the code, and whether the homepage is locked | **Stevens** (Claude can explain it) |
 | `music.mp3` | Background music, loops site-wide | Stevens supplies |
 | `video.mp4` | Background video for the video page (muted) | Stevens supplies |
@@ -88,7 +88,7 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 ## 5. How the site works
 
 **One page, hash routes.** Every "page" is a section shown or hidden by `route()` on `hashchange`. Routes:
-`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `archive`, `about`, `faq`, `more`, `cart`, `booth`, `video`, plus `random` (redirects).
+`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `about`, `faq`, `more`, `cart`, `booth`, `video`, plus `random` (redirects).
 Old `#privacy`, `#terms`, `#refunds` and `#shipping` links redirect to the standalone pages (`LEGAL_PAGES` in `route()`). Link to them as `privacy/`, `terms/`, `refunds/`, `shipping/` (relative paths, so they also work on the github.io test link).
 Because it is one document, music keeps playing between pages. Keep that true in any rebuild (page transitions if pages become separate files or a Shopify theme).
 
@@ -102,19 +102,17 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Braille art** repeats down the left side of the homepage behind the pile.
 
-**Pixel clouds** drift behind everything on every page except the 3D booth and the video page (18 clouds, 6 shapes, full screen height, with extra clouds through the middle). Pages sit above them (`.page` has z-index 1) and the archive has a see-through background so they show behind its grid. Their motion is driven by JavaScript, not CSS. On the homepage only, they are interactive from empty space (anything starting on a sticker, the sign-up box, a button or a banner goes to that instead): **tap** pops a cloud in pixel squares and a new one drifts in from the left 2.5 to 6 seconds later; **drag** moves it and a flick sends it gliding; while dragging, a **second finger pinches** to resize (0.4x to 3x), and on desktop **scroll or trackpad pinch** over a cloud resizes it; clouds **slide away** from a nearby mouse or finger and settle back. On every other page the clouds just drift.
+**Pixel clouds** drift behind everything on every page except the 3D booth and the video page (18 clouds, 6 shapes, full screen height, with extra clouds through the middle). Pages sit above them (`.page` has z-index 1). Their motion is driven by JavaScript, not CSS. On the homepage only, they are interactive from empty space (anything starting on a sticker, the sign-up box, a button or a banner goes to that instead): **tap** pops a cloud in pixel squares and a new one drifts in from the left 2.5 to 6 seconds later; **drag** moves it and a flick sends it gliding; while dragging, a **second finger pinches** to resize (0.4x to 3x), and on desktop **scroll or trackpad pinch** over a cloud resizes it; clouds **slide away** from a nearby mouse or finger and settle back. On every other page the clouds just drift.
 
 **Music bar** above the bottom banner: play and pause icons (drawn SVG, not text symbols), scrolling waveform. Music starts on the first tap anywhere, loops, and remembers mute. A round speaker button covers other pages.
 
-**Lock.** Every page except the homepage shows a lock screen. The legal pages are separate files outside the app, so the lock and `site-settings.js` never touch them. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: ssw-access`). **Archive has its own code: ARCHIVE** (also case-insensitive, SHA-256 hash only). SOLEIL does not open Archive and ARCHIVE opens nothing else; it is remembered separately (`localStorage: ssw-archive`). Listing `archive` in `openPages` still opens it without a code. `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
+**Lock.** Every page except the homepage shows a lock screen. The legal pages are separate files outside the app, so the lock and `site-settings.js` never touch them. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: ssw-access`). `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
 
 **Random.** Every 1st or 2nd tap lands on a surprise, alternating between the **video page** (same pile over `video.mp4`; the sign-up hides after a valid number) and the **3D booth** (three.js r128, loaded only when opened; views, tower tops, heights, colors, floor). Other taps land on regular pages.
 
-**Shop pages** (Mens, Womens, Accessories): item rail, corner frame, pixel build-in, console sounds, sold-out size, add to cart. Placeholder prices and copy. CSH003 hoodie is in Mens and Womens (all hoodies sell as both). Backpack side and front are two separate items in Accessories. The pink hoodie back is not on shop pages (not a product photo).
+**Shop pages** (Mens, Womens, Accessories): item rail, corner frame, pixel build-in, console sounds, sold-out size, add to cart. Placeholder prices and copy. CSH003 hoodie is in Mens and Womens (all hoodies sell as both). The backpack is one item in Accessories with two angles (side and front): arrows on its picture switch views, and a label shows which one (`views` on the shop item; `showViews` and `stepView` in `js/site.js`). Tapping either backpack piece on the homepage opens it on that angle. The pink hoodie back is not on shop pages (not a product photo).
 
 **Cart.** Quantities, remove, subtotal, demo checkout. Saved in `localStorage: ssw-cart`.
-
-**Archive (Pynk Project).** Deconstructed tech pack: spec sheets (PP-001 codes, crop marks, measured dimensions, colorway swatches pulled from the art) on a board with the same drag, flick, rotate and resize as the homepage. Background grid: `rgba(0,0,0,0.08)` 1px lines, 40px, drifting diagonally at 25px per second (white lines in dark mode). Tap a sheet for full spec. Pulls every non-mock piece plus `my-items.js` pieces automatically.
 
 **Policy pages** (Privacy, Terms, Refunds, Shipping): standalone static pages at `/privacy/`, `/terms/`, `/refunds/`, `/shipping/`. They load fully with JavaScript off (required for SMS carrier review). Leaving the app for them stops the music; that is expected. Business details: Cite Soleil LLC, admin@soleilsportswear.com, 450 Summer St, Brockton, MA 02302, Massachusetts law, effective November 1, 2026.
 - **Privacy** follows Klaviyo's SMS privacy guidance (help.klaviyo.com article 4404199571867): SMS program description (how numbers are collected, used, shared), Klaviyo's example third-party sharing clarification, Klaviyo named as SMS and marketing provider, and the `__kla_id` onsite tracking cookie.
@@ -161,4 +159,4 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 ## 9. Testing
 
-`checklist.html` lives next to the site at `/checklist.html`. Testers mark Pass, Fail or Skip and send results. It does not yet cover the lock, the SMS pop-up, Random surprises, the video page, music, the booth or the archive; add those sections.
+`checklist.html` lives next to the site at `/checklist.html`. Testers mark Pass, Fail or Skip and send results. It does not yet cover the lock, the SMS pop-up, Random surprises, the video page, music or the booth; add those sections.

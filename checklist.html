@@ -78,7 +78,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,t
       <li>Run the whole list once on a phone and once on a computer, if you can.</li>
       <li>Run it once in light mode and once in dark mode (your device's appearance setting).</li>
       <li>Turn your sound on. Music and shop sounds are part of the test.</li>
-      <li>Ask Stevens for the access code and the separate archive code. Do not share them.</li>
+      <li>Ask Stevens for the access code. Do not share it.</li>
       <li>To test the lock again from scratch, use "Reset site memory" at the bottom of this page.</li>
     </ol>
   </section>
@@ -122,7 +122,7 @@ const SECTIONS = [
     ['Hold stops the banner', 'Press and hold on a banner. It stops while you hold.'],
     ['Drag scrubs the banner', 'Hold and drag sideways. The banner follows your finger or mouse.'],
     ['Release resumes', 'Let go. The banner starts scrolling again by itself.'],
-    ['Quick tap opens a page', 'A quick tap on a menu word (Mens, Archive, About) goes to that page.'],
+    ['Quick tap opens a page', 'A quick tap on a menu word (Mens, Media, About) goes to that page.'],
     ['Drag never opens a page', 'Dragging across a menu word and letting go does not change the page.'],
   ]},
   {id:'pile', title:'Homepage pile', how:'Go to the homepage. The pieces scattered around the sign-up box are the pile.', items:[
@@ -162,14 +162,11 @@ const SECTIONS = [
   ]},
   {id:'lock', title:'Lock and access code', how:'Use "Reset site memory" below first so the site is locked again.', items:[
     ['Homepage, Terms and Privacy are open', 'These three pages show without a code.'],
-    ['Other pages are locked', 'Mens, Archive, About, Cart and the rest show the lock screen.'],
+    ['Other pages are locked', 'Mens, Media, About, Cart and the rest show the lock screen.'],
     ['Wrong code is refused', 'A wrong code shows an error message and keeps the page locked.'],
     ['Right code unlocks', 'The code from Stevens opens the page.'],
     ['Code ignores capitals', 'The code works in capitals and in lowercase.'],
     ['Unlock is remembered', 'Reload the site. Locked pages stay open on this device.'],
-    ['Archive has its own code', 'The main code does not open Archive. Ask Stevens for the archive code; it opens Archive only.'],
-    ['Archive code opens nothing else', 'The archive code typed on any other locked page is refused.'],
-    ['Archive unlock is remembered', 'Reload the site. Archive stays open on this device.'],
     ['Instagram link', 'The Follow link on the lock screen opens instagram.com/soleilsportswear.'],
     ['Owner only: open pages setting', 'Stevens only: a page listed in site-settings.js openPages opens without the code.'],
     ['Owner only: lock homepage setting', 'Stevens only: lockHome true in site-settings.js puts the lock on the homepage too.'],
@@ -220,7 +217,7 @@ const SECTIONS = [
     ['Add to cart works', 'With a size picked, Add to cart raises the Cart count by one.'],
     ['Arrow keys (computer)', 'Arrow keys move between items.'],
     ['Hoodie in Mens and Womens', 'The CSH003 hoodie appears in both Mens and Womens.'],
-    ['Backpack in Accessories', 'Backpack side and backpack front are two separate items in Accessories.'],
+    ['Backpack in Accessories', 'The backpack is one item in Accessories. Arrows on its picture switch between the side and front views, and the label under it shows which one.'],
     ['Pink hoodie back not in shop', 'The pink hoodie back does not appear on any shop page.'],
   ]},
   {id:'cart', title:'Cart', how:'Add two different items first.', items:[
@@ -231,17 +228,6 @@ const SECTIONS = [
     ['Demo checkout', 'Checkout shows a "Demo only" message and does not ask for payment.'],
     ['Cart is remembered', 'Reload the site. The cart still has the same items.'],
     ['Empty cart', 'With nothing in it, the cart says it is empty and links to the shop.'],
-  ]},
-  {id:'archive', title:'Archive (Pynk Project)', how:'Open Archive from the top banner and enter the archive code.', items:[
-    ['Archive code', 'Archive asks for its own code, not the main one.'],
-    ['Spec sheets load','Every sheet shows its art, a PP code, crop marks and measurements.'],
-    ['Color swatches', 'Each sheet shows color swatches taken from its art.'],
-    ['Background grid drifts', 'The thin grid behind the sheets moves slowly on a diagonal.'],
-    ['Grid in dark mode', 'In dark mode the grid lines are white instead of black.'],
-    ['Drag, flick, rotate, resize', 'Sheets move the same way as homepage pieces.'],
-    ['Tap opens full spec', 'Tapping a sheet opens its full spec. It closes again.'],
-    ['Stevens’s own pieces included', 'Pieces Stevens added himself also appear as sheets.'],
-    ['Filters', 'If filter buttons show, each one narrows the sheets to that group.'],
   ]},
   {id:'text', title:'Other pages', how:'Unlock the site first.', items:[
     ['About', 'Opens and reads correctly.'],
@@ -359,7 +345,7 @@ document.getElementById('clearMarks').addEventListener('click',()=>{
 });
 document.getElementById('resetSite').addEventListener('click',()=>{
   if(!confirm('Lock the site again, empty the cart and turn music back on, on this device?'))return;
-  try{['ssw-access','ssw-archive','ssw-cart','ssw-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
+  try{['ssw-access','ssw-cart','ssw-music'].forEach(k=>localStorage.removeItem(k))}catch(_){}
   msg.textContent='Site memory reset. Reload the site tab to see the lock again.';
 });
 

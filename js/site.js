@@ -191,7 +191,7 @@ const APP=['XS','S','M','L','XL'];
 const SHOP={
  mens:{title:'Mens',items:[{shape:'csh003',name:'CSH003 fur hood hoodie'},{shape:'tee',name:'Mens sample tee'},{shape:'hoodie',name:'Mens sample hoodie'},{shape:'shorts',name:'Mens sample shorts'}]},
  womens:{title:'Womens',items:[{shape:'csh003',name:'CSH003 fur hood hoodie'},{shape:'tee',name:'Womens sample tee'},{shape:'hoodie',name:'Womens sample hoodie'},{shape:'shorts',name:'Womens sample shorts'}]},
- accessories:{title:'Accessories',items:[{shape:'bagside',name:'Soleil backpack, side'},{shape:'bagfront',name:'Soleil backpack, front'},{shape:'cap',name:'Sample cap'},{shape:'tote',name:'Sample tote'}]}
+ accessories:{title:'Accessories',items:[{shape:'bagside',name:'Soleil backpack',views:[['bagside','Side'],['bagfront','Front']]},{shape:'cap',name:'Sample cap'},{shape:'tote',name:'Sample tote'}]}
 };
 const MOCKCAT={tee:'mens',hoodie:'mens',shorts:'mens',cap:'accessories',tote:'accessories',csh003:'mens',bagside:'accessories',bagfront:'accessories'};
 const REAL={};ITEMS.forEach(x=>{if(x.id==='csh003'||x.id==='bagside'||x.id==='bagfront')REAL[x.id]=x.src});
@@ -206,12 +206,12 @@ const TEXT={
  campaigns:'<header class="ptitle rule"><h1>Campaigns</h1><p>Lookbooks and launches</p></header><div class="cards">'+['01','02','03','04'].map(n=>'<div class="card"><span>Campaign '+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
  media:'<header class="ptitle rule"><h1>Media</h1><p>Video, photo and press</p></header><div class="cards">'+['Video','Photo','Press','Event recap'].map(n=>'<div class="card"><span>'+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
  more:'<header class="ptitle rule"><h1>More</h1><p>Every page in one place</p></header><nav class="links" aria-label="All pages">'+
-   [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['archive','Archive'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
+   [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
    '<a href="shipping/">Shipping</a><a href="refunds/">Refunds</a><a href="terms/">Terms</a><a href="privacy/">Privacy</a><a href="https://instagram.com/soleilsportswear" target="_blank" rel="noopener">Instagram</a></nav>'
 };
 
 /* Privacy, Terms, Refunds and Shipping are standalone pages in their own folders (privacy/, terms/, refunds/, shipping/). */
-const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','video','archive'];
+const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','video'];
 const pgShop=document.getElementById('pg-shop'),pgText=document.getElementById('pg-text'),foot=document.querySelector('footer');
 let scattered=false,pendingShape=null,lastRoute=null;
 
@@ -236,7 +236,8 @@ const rail=document.getElementById('rail'),canvas=document.getElementById('scree
 const nameEl=document.getElementById('name'),priceEl=document.getElementById('price'),descEl=document.getElementById('desc'),
       sizesEl=document.getElementById('sizes'),slotEl=document.getElementById('slot'),addBtn=document.getElementById('add'),
       cartEl=document.getElementById('cart'),soundBtn=document.getElementById('sound');
-let cat=null,current=-1,chosen=null,anim=null;
+let cat=null,current=-1,chosen=null,anim=null,view=0;
+const viewPrev=document.getElementById('viewPrev'),viewNext=document.getElementById('viewNext'),viewLbl=document.getElementById('viewLbl');
 let CART=[];try{CART=JSON.parse(localStorage.getItem('ssw-cart')||'[]')||[]}catch(_){CART=[]}
 function cartQty(){return CART.reduce((n,x)=>n+x.qty,0)}
 function saveCart(){try{localStorage.setItem('ssw-cart',JSON.stringify(CART))}catch(_){}cartEl.textContent='Cart ('+cartQty()+')'}
@@ -253,6 +254,7 @@ function buildShop(c){
   });
 }
 function render(i){
+  const it=SHOP[cat].items[i],sh=it.views?it.views[view][0]:it.shape;
   const img=new Image(),c=bg();
   img.onload=()=>{
     let steps=reduce?[480]:[6,12,24,48,480],k=0;const S=canvas.width,off=document.createElement('canvas');
@@ -263,10 +265,10 @@ function render(i){
       k++;if(k>=steps.length)clearInterval(anim)};
     frame();anim=setInterval(frame,55);
   };
-  {const sh=SHOP[cat].items[i].shape;img.src=REAL[sh]||'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgFor(sh,RED,c))}
+  img.src=REAL[sh]||'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgFor(sh,RED,c));
 }
-function select(i,snd){
-  if(i===current)return;current=i;chosen=null;
+function select(i,snd,v){
+  if(i===current)return;current=i;chosen=null;view=v||0;
   [...rail.children].forEach((t,j)=>t.setAttribute('aria-selected',j===i?'true':'false'));
   const it=SHOP[cat].items[i],acc=cat==='accessories';
   nameEl.textContent=it.name;priceEl.textContent='$00.00';descEl.textContent='Placeholder description.';
@@ -281,8 +283,13 @@ function select(i,snd){
     });
     sizesEl.appendChild(b);
   });
-  render(i);if(snd)SFX.select();
+  showViews(it);render(i);if(snd)SFX.select();
 }
+/* items with more than one angle (the backpack) get arrows on the picture */
+function showViews(it){const on=!!it.views;[viewPrev,viewNext,viewLbl].forEach(el=>el.hidden=!on);
+  if(on)viewLbl.textContent=it.views[view][1]+' '+(view+1)+'/'+it.views.length}
+function stepView(d){const it=SHOP[cat].items[current];if(!it.views)return;view=(view+d+it.views.length)%it.views.length;showViews(it);render(current);SFX.select()}
+viewPrev.addEventListener('click',()=>stepView(-1));viewNext.addEventListener('click',()=>stepView(1));
 addBtn.addEventListener('click',()=>{
   if(!chosen){SFX.deny();sizesEl.classList.remove('shake');void sizesEl.offsetWidth;sizesEl.classList.add('shake');return}
   const it=SHOP[cat].items[current],key=cat+'|'+it.shape+'|'+chosen,ex=CART.find(x=>x.key===key);
@@ -444,18 +451,15 @@ function boothToast(){const el=document.getElementById('bToast');el.textContent=
 
 /* ---------- Early access lock ---------- */
 const CODE_HASH='c598a6e2835e5ce64f29fd9395b3848cb70b707790b482bdb2ea5a41bfca8892';
-/* Archive has its own code; the main code does not open it */
-const ARCHIVE_HASH='b22a9799327ae5c2ede95de1e1943426c145a79ec6f6735b3465b5e0127715cc';
 const SITE_SET=window.SOLEIL_SETTINGS||{};
 const OPEN_ROUTES=[].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
 const pgLock=document.getElementById('pg-lock');
 let unlocked=false;try{unlocked=localStorage.getItem('ssw-access')==='1'}catch(_){}
-let archiveUnlocked=false;try{archiveUnlocked=localStorage.getItem('ssw-archive')==='1'}catch(_){}
 let curRoute='home';
-function isLocked(r){return !OPEN_ROUTES.includes(r)&&!(r==='archive'?archiveUnlocked:unlocked)}
+function isLocked(r){return !OPEN_ROUTES.includes(r)&&!unlocked}
 async function sha(s){
   if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-  return s==='SOLEIL'?CODE_HASH:s==='ARCHIVE'?ARCHIVE_HASH:'';
+  return s==='SOLEIL'?CODE_HASH:'';
 }
 const appEl=document.getElementById('app'),popEl=document.getElementById('pop');
 let popOpener=null;
@@ -470,10 +474,8 @@ document.getElementById('lockSms').onclick=openPop;
 document.getElementById('lockForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.currentTarget,inp=document.getElementById('code'),err=document.getElementById('lockErr');
   const h=await sha(inp.value.trim().toUpperCase());
-  const forArchive=curRoute==='archive';
-  if(h===(forArchive?ARCHIVE_HASH:CODE_HASH)){
-    if(forArchive){archiveUnlocked=true;try{localStorage.setItem('ssw-archive','1')}catch(_){}}
-    else{unlocked=true;try{localStorage.setItem('ssw-access','1')}catch(_){}}
+  if(h===CODE_HASH){
+    unlocked=true;try{localStorage.setItem('ssw-access','1')}catch(_){}
     inp.value='';err.textContent='';SFX.add();lastRoute=null;route();
     const el=document.getElementById('bToast');el.textContent='Unlocked';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800);
   }else{err.textContent='That code didn\u2019t work.';SFX.deny();f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');inp.select()}
@@ -695,100 +697,6 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
     e.preventDefault();c.s=Math.min(3,Math.max(.4,c.s*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))))},{passive:false});
 })();
 
-/* ---------- Archive (Pynk Project) ---------- */
-const pgArchive=document.getElementById('pg-archive');
-const AR_CAT={csh003:'Garment',hoodiepink:'Garment',bagside:'Bag',bagfront:'Bag',bear:'Mark',star:'Mark',cs:'Mark',official:'Mark',graffiti:'Mark'};
-const AR_NOTE={Garment:'check rib width',Bag:'zip pull color?',Sticker:'die cut 1/8 in border',Mark:'rebuild as vector'};
-let arBuilt=false,arFilter='all',arList=[];
-function hex(r,g,b){return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase()}
-function palette(img,n){try{const c=document.createElement('canvas'),s=64;c.width=c.height=s;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,s,s);
-  const d=g.getImageData(0,0,s,s).data,m=new Map();
-  for(let i=0;i<d.length;i+=4){if(d[i+3]<200)continue;const k=(d[i]>>4)+','+(d[i+1]>>4)+','+(d[i+2]>>4);const e=m.get(k)||[0,0,0,0];e[0]+=d[i];e[1]+=d[i+1];e[2]+=d[i+2];e[3]++;m.set(k,e)}
-  const top=[...m.values()].sort((a,b)=>b[3]-a[3]),out=[];
-  for(const e of top){const c2=[Math.round(e[0]/e[3]),Math.round(e[1]/e[3]),Math.round(e[2]/e[3])];
-    if(out.every(o=>Math.abs(o[0]-c2[0])+Math.abs(o[1]-c2[1])+Math.abs(o[2]-c2[2])>60))out.push(c2);if(out.length>=n)break}
-  return out.map(c3=>hex(c3[0],c3[1],c3[2]))}catch(_){return[]}}
-function arSrc(a){return a.it.dark&&matchMedia('(prefers-color-scheme: dark)').matches?a.it.dark:a.it.src}
-function arGroup(c){return c==='Bag'?'Garment':c}
-function buildArchive(){
-  if(!arBuilt){arBuilt=true;
-    arList=ITEMS.filter(x=>!x.mock).map((x,i)=>({it:x,code:'PP-'+String(i+1).padStart(3,'0'),cat:AR_CAT[x.id]||'Sticker',w:0,h:0,cols:[]}));
-    arList.forEach(a=>{const im=new Image();im.onload=()=>{a.w=im.naturalWidth;a.h=im.naturalHeight;a.cols=palette(im,4);const card=pgArchive.querySelector('[data-code="'+a.code+'"]');if(card)fillCard(card,a)};im.src=a.it.src});
-  }
-  const counts={all:arList.length,Garment:0,Sticker:0,Mark:0};arList.forEach(a=>counts[arGroup(a.cat)]++);
-  const F2=[['all','All'],['Garment','Garments'],['Sticker','Stickers'],['Mark','Marks']];
-  pgArchive.innerHTML='<header class="ar-head"><h1 id="arTitle">Pynk <span>Project</span></h1></header>'+
-    '<div class="ar-meta"><div><small>Collection</small>Pynk Project</div><div><small>Season</small>01</div><div><small>Items</small>'+arList.length+'</div><div><small>Document</small>Archive</div><div><small>Rev</small>A</div><div><small>Status</small>Design files, not product photos</div></div>'+
-    '<div class="ar-bar"><div class="ar-filters" role="group" aria-label="Filter">'+F2.map(f=>'<button type="button" data-f="'+f[0]+'" aria-pressed="'+(arFilter===f[0])+'">'+f[1]+' ('+counts[f[0]]+')</button>').join('')+'</div>'+
-    '<button type="button" class="ar-shuffle" id="arShuffle">Shuffle</button></div>'+
-    '<div class="ar-board" id="arBoard" aria-label="Archive sheets. Drag them around or open one."></div>';
-  const board=document.getElementById('arBoard');
-  const show=arList.filter(a=>arFilter==='all'||arGroup(a.cat)===arFilter);
-  board.innerHTML=show.map(a=>'<button type="button" class="ar-card" data-code="'+a.code+'" aria-label="'+a.code+' '+a.it.name+'">'+
-    '<div class="ar-top"><b>'+a.code+'</b><span>'+a.cat+'</span></div>'+
-    '<div class="ar-fig"><i class="cm tl"></i><i class="cm tr"></i><i class="cm bl"></i><i class="cm br"></i><img src="'+arSrc(a)+'" alt="" draggable="false"><span class="dim-w"><b class="w">W</b></span><span class="dim-h"><b class="h">H</b></span></div>'+
-    '<dl class="ar-spec"><dt>Name</dt><dd>'+a.it.name+'</dd><dt>Colorway</dt><dd class="sw"></dd></dl></button>').join('');
-  show.forEach(a=>{if(a.w)fillCard(board.querySelector('[data-code="'+a.code+'"]'),a)});
-  requestAnimationFrame(()=>arScatter(board));
-}
-/* archive board motion: drag, flick, two-finger rotate + resize, tap to open */
-function arApply(c){c.style.transform='translate3d('+c._x+'px,'+c._y+'px,0) rotate('+c._r+'deg) scale('+c._s+')'}
-function arClamp(c){const b=c.parentNode;if(!b)return;const W=b.clientWidth,H=b.clientHeight,w=c.offsetWidth,h=c.offsetHeight;
-  c._x=Math.min(Math.max(c._x,-w*.4),W-w*.6);c._y=Math.min(Math.max(c._y,-h*.3),H-h*.5)}
-let arZ=10;
-function arScatter(board){const W=board.clientWidth,H=board.clientHeight,cw=Math.max(140,Math.min(220,W*.42));
-  [...board.children].forEach(c=>{c.style.setProperty('--cw',cw+'px');c._s=1;c._r=(Math.random()-.5)*16;
-    c._x=Math.random()*Math.max(1,W-cw);c._y=Math.random()*Math.max(1,H-c.offsetHeight*.7);c._vx=c._vy=0;arClamp(c);c.style.zIndex=++arZ;arApply(c)})}
-const AG={c:null,pts:new Map(),moved:false,two:false};
-function agOne(){const p=[...AG.pts.values()][0];AG.sx=AG.lx=p.x;AG.sy=AG.ly=p.y;AG.bx=AG.c._x;AG.by=AG.c._y;AG.lt=performance.now();AG.two=false}
-function agTwo(){const [p,q]=[...AG.pts.values()];AG.a0=Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI;AG.r0=AG.c._r;AG.d0=Math.hypot(q.x-p.x,q.y-p.y)||1;AG.s0=AG.c._s;AG.mx=(p.x+q.x)/2;AG.my=(p.y+q.y)/2;AG.bx=AG.c._x;AG.by=AG.c._y;AG.two=true;AG.moved=true}
-pgArchive.addEventListener('pointerdown',e=>{const c=e.target.closest('.ar-card');if(!c||AG.c||(e.pointerType==='mouse'&&e.button!==0))return;
-  AG.c=c;AG.pts.clear();AG.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});AG.moved=false;try{c.setPointerCapture(e.pointerId)}catch(_){}
-  cancelAnimationFrame(c._raf);c._vx=c._vy=0;c.style.zIndex=++arZ;c.classList.add('held');agOne()});
-document.addEventListener('pointerdown',e=>{if(!AG.c||AG.pts.has(e.pointerId)||AG.pts.size>=2)return;e.stopPropagation();e.preventDefault();AG.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});agTwo()},true);
-document.addEventListener('pointermove',e=>{const c=AG.c;if(!c||!AG.pts.has(e.pointerId))return;AG.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(AG.two&&AG.pts.size===2){const [p,q]=[...AG.pts.values()];let d=Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI-AG.a0;if(d>180)d-=360;if(d<-180)d+=360;
-    c._r=AG.r0+d;c._s=Math.min(2.6,Math.max(.5,AG.s0*Math.hypot(q.x-p.x,q.y-p.y)/AG.d0));c._x=AG.bx+(p.x+q.x)/2-AG.mx;c._y=AG.by+(p.y+q.y)/2-AG.my;arClamp(c);arApply(c);return}
-  const dx=e.clientX-AG.sx,dy=e.clientY-AG.sy;if(!AG.moved&&Math.hypot(dx,dy)>6)AG.moved=true;if(!AG.moved)return;
-  const now=performance.now(),dt=Math.max(now-AG.lt,1);c._vx=(e.clientX-AG.lx)/dt*16;c._vy=(e.clientY-AG.ly)/dt*16;AG.lt=now;AG.lx=e.clientX;AG.ly=e.clientY;
-  c._x=AG.bx+dx;c._y=AG.by+dy;arClamp(c);arApply(c)});
-function agEnd(e){const c=AG.c;if(!c||!AG.pts.has(e.pointerId))return;AG.pts.delete(e.pointerId);
-  if(AG.pts.size===1){c._vx=c._vy=0;agOne();AG.moved=true;return}
-  AG.c=null;c.classList.remove('held');
-  if(!AG.moved){if(e.type==='pointerup')openArchive(c.dataset.code,c);return}
-  if(!reduce&&!AG.two){const step=()=>{c._vx*=.92;c._vy*=.92;if(Math.abs(c._vx)<.2&&Math.abs(c._vy)<.2)return;c._x+=c._vx;c._y+=c._vy;const px=c._x,py=c._y;arClamp(c);if(c._x!==px)c._vx*=-.4;if(c._y!==py)c._vy*=-.4;arApply(c);c._raf=requestAnimationFrame(step)};c._raf=requestAnimationFrame(step)}
-  AG.two=false}
-document.addEventListener('pointerup',agEnd);document.addEventListener('pointercancel',agEnd);
-pgArchive.addEventListener('wheel',e=>{const c=e.target.closest('.ar-card');if(!c)return;e.preventDefault();c._s=Math.min(2.6,Math.max(.5,c._s*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))));c.style.zIndex=++arZ;arApply(c)},{passive:false});
-pgArchive.addEventListener('keydown',e=>{const c=e.target.closest&&e.target.closest('.ar-card');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openArchive(c.dataset.code,c)}});
-addEventListener('resize',()=>{const b=document.getElementById('arBoard');if(b&&!pgArchive.hidden)[...b.children].forEach(c=>{arClamp(c);arApply(c)})});
-function fillCard(card,a){if(!card)return;card.querySelector('.w').textContent='W '+a.w+' PX';card.querySelector('.h').textContent='H '+a.h+' PX';
-  card.querySelector('.sw').innerHTML=a.cols.map(c=>'<i style="background:'+c+'" title="'+c+'"></i>').join('')}
-pgArchive.addEventListener('click',e=>{
-  const f=e.target.closest('[data-f]');if(f){arFilter=f.dataset.f;SFX.select();buildArchive();return}
-  if(e.target.closest('#arShuffle')){SFX.select();arScatter(document.getElementById('arBoard'))}
-});
-const arDlg=document.getElementById('arDlg'),arSheet=document.getElementById('arSheet');let arOpener=null;
-function openArchive(code,from){
-  const a=arList.find(x=>x.code===code);if(!a)return;arOpener=from;SFX.select();
-  const extra=a.cat==='Sticker'||a.cat==='Mark'?['Print method','PRINT METHOD']:['Construction','CONSTRUCTION NOTES'];
-  arSheet.innerHTML='<div class="ar-top"><b id="arDlgTitle">'+a.code+' / '+a.it.name+'</b><button type="button" class="x" id="arClose">Close</button></div>'+
-   '<div class="ar-body"><div class="ar-fig"><i class="cm tl"></i><i class="cm tr"></i><i class="cm bl"></i><i class="cm br"></i><img src="'+arSrc(a)+'" alt="'+a.it.name+'"><span class="dim-w"><b>W '+a.w+' PX</b></span><span class="dim-h"><b>H '+a.h+' PX</b></span></div>'+
-   '<dl class="ar-spec"><dt>Code</dt><dd>'+a.code+'</dd><dt>Name</dt><dd>'+a.it.name+'</dd><dt>Category</dt><dd>'+a.cat+'</dd><dt>Collection</dt><dd>Pynk Project / 01</dd>'+
-   '<dt>Colorway</dt><dd class="sw">'+a.cols.map(c=>'<span><i style="background:'+c+'"></i>'+c+'</span>').join('')+'</dd>'+
-   '<dt>Source size</dt><dd>'+a.w+' x '+a.h+' PX</dd><dt>Pantone</dt><dd>'+F('TBD')+'</dd><dt>'+extra[0]+'</dt><dd>'+F(extra[1])+'</dd><dt>Status</dt><dd>Archived, not for sale</dd><dt>Notes</dt><dd>'+F('NOTES')+'</dd></dl></div>';
-  arDlg.classList.add('on');document.getElementById('arClose').focus({preventScroll:true});
-}
-function closeArchive(){if(!arDlg.classList.contains('on'))return;arDlg.classList.remove('on');if(arOpener)arOpener.focus({preventScroll:true})}
-arDlg.addEventListener('click',e=>{if(e.target===arDlg||e.target.id==='arClose')closeArchive()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeArchive()});
-
-/* moving grid behind the archive */
-(function(){let x=0,y=0,last=performance.now();const SPEED=25,SIZE=40;
-  function frame(now){const dt=Math.min((now-last)/1000,.1);last=now;
-    if(!pgArchive.hidden&&!reduce){x=(x+SPEED*dt)%SIZE;y=(y+SPEED*dt)%SIZE;pgArchive.style.backgroundPosition=x.toFixed(1)+'px '+y.toFixed(1)+'px'}
-    requestAnimationFrame(frame)}
-  requestAnimationFrame(frame)})();
 /* mirror the side art on the right */
 (function(){const l=document.querySelector('.side-art');if(!l)return;const r=l.cloneNode(true);r.classList.add('right');l.parentNode.insertBefore(r,l.nextSibling);
   new MutationObserver(()=>{r.textContent=l.textContent}).observe(l,{childList:true,characterData:true,subtree:true})})();
@@ -810,20 +718,20 @@ function route(){
   curRoute=r;
   const locked=isLocked(r);
   pgLock.hidden=!locked;
-  if(locked){showVideo(false);stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;pgArchive.hidden=true;closeArchive();
+  if(locked){showVideo(false);stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;
     document.documentElement.classList.remove('is-home');document.getElementById('lockErr').textContent='';
     closePop();clearTimeout(window._popT);window._popT=setTimeout(()=>{if(!pgLock.hidden)openPop()},350);
     if(lastRoute!==null&&lastRoute!==r)SFX.nav();lastRoute=r;document.title='Locked | soleilsportswear';return}
   closePop();
-  pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';pgArchive.hidden=r!=='archive';closeArchive();
-  if(r==='archive'){buildArchive();pgArchive.scrollTop=0}
+  pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';
   if(r==='booth'){pgBooth.scrollTop=0;requestAnimationFrame(initBooth)}
   if(home&&!scattered){scattered=true;requestAnimationFrame(scatter)}
   if(home&&window._fillSideArt)requestAnimationFrame(window._fillSideArt);
   if(SHOP[r]){
     buildShop(r);
-    let idx=0;if(pendingShape){const k=SHOP[r].items.findIndex(x=>x.shape===pendingShape);if(k>=0)idx=k;pendingShape=null}
-    select(idx,false);pgShop.scrollTop=0;
+    let idx=0,v=0;if(pendingShape){const k=SHOP[r].items.findIndex(x=>x.shape===pendingShape||(x.views&&x.views.some(w=>w[0]===pendingShape)));
+      if(k>=0){idx=k;const it=SHOP[r].items[k];if(it.views)v=Math.max(0,it.views.findIndex(w=>w[0]===pendingShape))}pendingShape=null}
+    select(idx,false,v);pgShop.scrollTop=0;
   }
   if(r==='cart')pgText.hidden=false;
   if(TEXT[r]){pgText.innerHTML=TEXT[r];pgText.scrollTop=0}
