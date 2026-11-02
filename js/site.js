@@ -533,11 +533,20 @@ mbPlay.addEventListener('click',e=>{e.stopPropagation();
   else{musicOn=false;try{localStorage.setItem('ssw-music','off')}catch(_){}bgm.pause()}
   syncMusicBtn()});
 function playMusic(){if(!musicOn)return;bgm.volume=.6;const p=bgm.play();if(p&&p.then)p.then(()=>{musicStarted=true;musicReady=true;syncMusicBtn()}).catch(()=>{})}
-bgm.addEventListener('canplay',()=>{musicReady=true;mbar.hidden=false;syncMusicBtn()},{once:true});
-bgm.addEventListener('error',()=>{musicBtn.hidden=true;mbar.hidden=true});
+/* playlist: plays in order, then starts over. Add files here to add tracks. */
+const TRACKS=['music.mp3','music2.mp3','music3.m4a'];
+let trackIdx=0,trackFails=0;
+const mbSkip=document.getElementById('mbSkip');
+function goTrack(i){trackIdx=(i+TRACKS.length)%TRACKS.length;bgm.src=TRACKS[trackIdx];bgm.load();if(musicStarted||!bgm.paused)playMusic()}
+bgm.addEventListener('ended',()=>goTrack(trackIdx+1));
+mbSkip.addEventListener('click',e=>{e.stopPropagation();mbSkip.classList.remove('mb-bump');void mbSkip.offsetWidth;mbSkip.classList.add('mb-bump');
+  musicOn=true;try{localStorage.setItem('ssw-music','on')}catch(_){}musicStarted=true;goTrack(trackIdx+1)});
+bgm.addEventListener('canplay',()=>{trackFails=0;musicReady=true;mbar.hidden=false;syncMusicBtn()});
+/* a missing or broken file is skipped; the bar hides only if none of the tracks load */
+bgm.addEventListener('error',()=>{trackFails++;if(trackFails>=TRACKS.length){musicBtn.hidden=true;mbar.hidden=true;return}goTrack(trackIdx+1)});
 bgm.addEventListener('play',syncMusicBtn);bgm.addEventListener('pause',syncMusicBtn);
 /* phones only allow sound from the end of a tap (touchend, pointerup, click), not the start */
-['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#musicBtn'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
+['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#mbSkip,#musicBtn'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
 musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('ssw-music',musicOn?'on':'off')}catch(_){}
   if(musicOn)playMusic();else bgm.pause();syncMusicBtn()});
 bgm.load();

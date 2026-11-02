@@ -217,9 +217,9 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .vid-on.vid-err .vid-miss{display:block}
 .mbar{position:relative;z-index:9000;display:flex;align-items:center;gap:4px;padding:2px 12px 0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans","Noto Sans Myanmar","Noto Music",sans-serif;font-size:15px;line-height:1.2;color:var(--ink);white-space:nowrap;overflow:hidden}
 .mbar[hidden]{display:none}
-#mbPlay{flex:none;background:none;border:0;color:inherit;font:inherit;font-size:20px;line-height:1;min-width:38px;min-height:38px;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
-#mbPlay:focus-visible{outline:2px solid var(--red,#E1251B);outline-offset:2px}
-#mbPlay.mb-bump{animation:mbpop .22s ease-out}
+#mbPlay,#mbSkip{flex:none;background:none;border:0;color:inherit;font:inherit;font-size:20px;line-height:1;min-width:38px;min-height:38px;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#mbPlay:focus-visible,#mbSkip:focus-visible{outline:2px solid var(--red,#E1251B);outline-offset:2px}
+#mbPlay.mb-bump,#mbSkip.mb-bump{animation:mbpop .22s ease-out}
 @keyframes mbpop{0%{transform:scale(.6)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
 .mb-wave{flex:1;min-width:0;overflow:hidden}
 .mb-wave span{display:inline-block;will-change:transform}
@@ -227,7 +227,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 @keyframes mbwave{to{transform:translateX(-50%)}}
 .mb-tail{flex:none}
 .vid-on .mbar{color:#F9F9F9;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-@media (prefers-reduced-motion:reduce){.mbar.playing .mb-wave span,#mbPlay.mb-bump{animation:none}}
+@media (prefers-reduced-motion:reduce){.mbar.playing .mb-wave span,#mbPlay.mb-bump,#mbSkip.mb-bump{animation:none}}
 .side-art{position:absolute;left:clamp(22px,7vw,110px);top:0;bottom:0;margin:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:clamp(9px,1.5vw,15px);line-height:1.08;letter-spacing:0;color:var(--ink);opacity:.9;white-space:pre}
 .vid-on .side-art{display:none}
 @media (max-width:640px){.side-art{left:26px;font-size:9px}}
