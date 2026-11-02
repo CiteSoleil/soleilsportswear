@@ -517,7 +517,7 @@ if(KLAVIYO_PUBLIC_KEY){const ks=document.createElement('script');ks.async=true;k
 function smsSubscribe(digits,source){
   if(!KLAVIYO_PUBLIC_KEY||!KLAVIYO_SMS_LIST)return Promise.reject(new Error('not set'));
   return fetch('https://a.klaviyo.com/client/subscriptions/?company_id='+encodeURIComponent(KLAVIYO_PUBLIC_KEY),{method:'POST',
-    headers:{'Content-Type':'application/json',revision:'2024-10-15'},
+    headers:{'Content-Type':'application/json',revision:'2025-10-15'},
     body:JSON.stringify({data:{type:'subscription',attributes:{custom_source:source,
       profile:{data:{type:'profile',attributes:{phone_number:'+1'+digits,subscriptions:{sms:{marketing:{consent:'SUBSCRIBED'},transactional:{consent:'SUBSCRIBED'}}}}}}},
       relationships:{list:{data:{type:'list',id:KLAVIYO_SMS_LIST}}}}})})
