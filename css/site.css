@@ -348,6 +348,5 @@ html:not(.show-clouds) .clouds{display:none}
 @media (max-width:640px){.clouds{--cell:6px}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .clouds{color:#E4E4E4;opacity:.32}}
 :root[data-theme="dark"] .clouds{color:#E4E4E4;opacity:.32}
-.cloud{position:absolute;left:0;display:block;height:auto;shape-rendering:crispEdges;animation:cloudDrift linear infinite;will-change:transform}
-@keyframes cloudDrift{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
-@media (prefers-reduced-motion:reduce){.cloud{animation-play-state:paused}}
+.cloud{position:absolute;left:0;will-change:transform;transform-origin:center}
+.cloud svg{display:block;width:100%;height:auto;shape-rendering:crispEdges}

@@ -599,7 +599,7 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
   function fill(){const h=innerHeight;el.textContent=unit;el.style.bottom='auto';const bh=el.offsetHeight||1;el.style.bottom='';const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n');gap()}
   fill();addEventListener('resize',()=>{clearTimeout(fill.t);fill.t=setTimeout(fill,150)});window._fillSideArt=fill})();
 
-/* ---------- Pixel clouds (landing page and lock screen) ---------- */
+/* ---------- Pixel clouds (landing page and lock screen; interactive on the landing page) ---------- */
 (function(){const box=document.getElementById('clouds');if(!box)return;
   /* each cloud is a pixel grid: # is a filled block. Wider at the bottom, stepped at the top. */
   const SHAPES=[
@@ -612,14 +612,86 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
   /* shape, top as % of the screen, size multiplier, seconds per crossing, start offset 0 to 1 */
   const LAYOUT=[[0,2,1,150,.1],[1,8,1.2,210,.55],[2,20,.8,120,.8],[3,0,1.4,260,.3],[4,30,.7,105,.4],[5,14,1,175,.95],
     [2,40,1,190,.2],[0,50,.9,140,.65],[5,60,1.1,230,.05],[4,70,.8,115,.75],[1,78,1.3,250,.45],[3,88,1,200,.85]];
-  const NS='http://www.w3.org/2000/svg';
+  const NS='http://www.w3.org/2000/svg',C=[];
   LAYOUT.forEach(([si,top,k,dur,off],i)=>{const rows=SHAPES[si],w=rows[0].length,h=rows.length;
     let d='';rows.forEach((r,y)=>{r.replace(/#+/g,(m,x)=>{d+='M'+x+' '+y+'h'+m.length+'v1h-'+m.length+'z';return m})});
-    const svg=document.createElementNS(NS,'svg');svg.setAttribute('class','cloud');svg.setAttribute('viewBox','0 0 '+w+' '+h);
+    const el=document.createElement('div');el.className='cloud';
+    const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 '+w+' '+h);
     /* light shade dither: two small dots per block, offset like a checkerboard */
     svg.innerHTML='<defs><pattern id="cdot'+i+'" width="1" height="1" patternUnits="userSpaceOnUse"><rect width=".25" height=".25" fill="currentColor"/><rect x=".5" y=".5" width=".25" height=".25" fill="currentColor"/></pattern></defs><path d="'+d+'" fill="url(#cdot'+i+')"/>';
-    svg.style.top=top+'%';svg.style.width='calc('+(w*k)+' * var(--cell))';
-    svg.style.animationDuration=dur+'s';svg.style.animationDelay=(-dur*off)+'s';box.appendChild(svg)})})();
+    el.appendChild(svg);el.style.top=top+'%';el.style.width='calc('+(w*k)+' * var(--cell))';box.appendChild(el);
+    C.push({el,rows,top,dur,off,x:0,y:0,s:1,fx:0,fy:0,px:0,py:0,w:0,h:0,gone:false})});
+  /* motion is driven here (not CSS) so clouds can be pushed, dragged, flung, resized and popped on the homepage */
+  const measure=()=>C.forEach(c=>{c.w=c.el.offsetWidth;c.h=c.el.offsetHeight});
+  addEventListener('resize',()=>{clearTimeout(measure.t);measure.t=setTimeout(measure,150)});
+  const root=document.documentElement,app0=document.getElementById('app');
+  const live=()=>root.classList.contains('is-home')&&!app0.classList.contains('vid-on')&&!app0.classList.contains('open')&&!app0.classList.contains('pop-on');
+  const BLOCK='.item,.signup,button,a,input,label,.marquee,.mbar,.sheet,.pop,.b-toast,#musicBtn';
+  const topPx=c=>c.top/100*innerHeight;
+  /* hit test against the cloud's own pixel grid, with one block of slack */
+  function hit(x,y){for(let i=C.length-1;i>=0;i--){const c=C[i];if(c.gone)continue;const r=c.el.getBoundingClientRect();
+      if(x<r.left||x>r.right||y<r.top||y>r.bottom)continue;
+      const cols=c.rows[0].length,rws=c.rows.length,cx=Math.floor((x-r.left)/r.width*cols),cy=Math.floor((y-r.top)/r.height*rws);
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const row=c.rows[cy+dy];if(row&&row[cx+dx]==='#')return c}}
+    return null}
+  let ptr=null,drag=null,last=performance.now();
+  function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;
+    if(root.classList.contains('show-clouds')){const W=innerWidth,H=innerHeight;
+      C.forEach(c=>{if(c.gone)return;
+        /* measured once visible (the box is hidden until the first route) */
+        if(!c.w){c.w=c.el.offsetWidth;c.h=c.el.offsetHeight;if(!c.w)return;if(!c.init){c.x=-c.w+c.off*(W+c.w);c.init=true}}
+        if(!drag||drag.c!==c){
+          if(!reduce)c.x+=(W+c.w)/c.dur*dt;
+          c.x+=c.fx*dt;c.y+=c.fy*dt;const fr=Math.pow(.06,dt);c.fx*=fr;c.fy*=fr;
+          const vt=topPx(c)+c.y+c.h*(1-c.s)/2,mn=-c.h*c.s*.5,mx=H-c.h*c.s*.5;
+          if(vt<mn){c.y+=mn-vt;c.fy*=-.4}else if(vt>mx){c.y-=vt-mx;c.fy*=-.4}
+          const vl=c.x+c.w*(1-c.s)/2;if(vl>W)c.x=-c.w*(1+c.s)/2-10;
+        }
+        /* push: slide away from a nearby finger or mouse, then settle back */
+        let tx=0,ty=0;
+        if(ptr&&live()&&!(drag&&drag.c===c)){const cx=c.x+c.w/2,cy=topPx(c)+c.y+c.h/2,dx=cx-ptr.x,dy=cy-ptr.y,dd=Math.hypot(dx,dy)||1,R=Math.max(c.w,c.h)*c.s/2+70;
+          if(dd<R){const f=(R-dd)/R;tx=dx/dd*f*60;ty=dy/dd*f*40}}
+        const e=Math.min(1,dt*6);c.px+=(tx-c.px)*e;c.py+=(ty-c.py)*e;
+        c.el.style.transform='translate('+(c.x+c.px).toFixed(1)+'px,'+(c.y+c.py).toFixed(1)+'px) scale('+c.s.toFixed(3)+')'})}
+    requestAnimationFrame(frame)}
+  requestAnimationFrame(frame);
+  function pop(c){c.gone=true;if(typeof SFX!=='undefined')SFX.select();
+    disintegrate(c.el,()=>{c.el.style.display='none';
+      setTimeout(()=>{c.el.style.display='';c.el.style.webkitMaskImage=c.el.style.maskImage=c.el.style.webkitMaskSize=c.el.style.maskSize='';
+        c.s=1;c.y=0;c.fx=c.fy=c.px=c.py=0;c.x=-c.w-20;c.gone=false},2500+Math.random()*3500)})}
+  const stg=document.getElementById('stage');
+  document.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='mouse')ptr={x:e.clientX,y:e.clientY};
+    if(drag){if(drag.pts.size<2&&!drag.pts.has(e.pointerId)){drag.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        const [p,q]=[...drag.pts.values()];drag.d0=Math.hypot(q.x-p.x,q.y-p.y)||1;drag.s0=drag.c.s;drag.two=true;e.preventDefault()}return}
+    if(!live()||G.b||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest(BLOCK))return;
+    const c=hit(e.clientX,e.clientY);if(!c)return;
+    e.preventDefault();c.fx=c.fy=0;
+    drag={c,id:e.pointerId,pts:new Map([[e.pointerId,{x:e.clientX,y:e.clientY}]]),sx:e.clientX,sy:e.clientY,gx:e.clientX-c.x,gy:e.clientY-c.y,t0:performance.now(),moved:false,two:false,vx:0,vy:0,lt:performance.now(),lx:e.clientX,ly:e.clientY};
+    stg.style.cursor='grabbing'});
+  document.addEventListener('pointermove',e=>{
+    if(e.pointerType==='mouse'||(drag&&drag.pts.has(e.pointerId))||e.buttons)ptr={x:e.clientX,y:e.clientY};
+    if(!drag){if(e.pointerType==='mouse')stg.style.cursor=live()&&!G.b&&!e.target.closest(BLOCK)&&hit(e.clientX,e.clientY)?'grab':'';return}
+    if(!drag.pts.has(e.pointerId))return;drag.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const c=drag.c;
+    if(drag.pts.size===2){const [p,q]=[...drag.pts.values()];c.s=Math.min(3,Math.max(.4,drag.s0*Math.hypot(q.x-p.x,q.y-p.y)/drag.d0));return}
+    if(e.pointerId!==drag.id)return;
+    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6)drag.moved=true;
+    if(!drag.moved)return;
+    const now=performance.now(),t=Math.max(now-drag.lt,1);drag.vx=(e.clientX-drag.lx)/t*1000;drag.vy=(e.clientY-drag.ly)/t*1000;drag.lt=now;drag.lx=e.clientX;drag.ly=e.clientY;
+    c.x=e.clientX-drag.gx;c.y=e.clientY-drag.gy});
+  function end(e){if(e.pointerType!=='mouse')ptr=null;
+    if(!drag||!drag.pts.has(e.pointerId))return;drag.pts.delete(e.pointerId);
+    if(drag.pts.size===1){/* one finger left: keep dragging with it */const [id,p]=[...drag.pts.entries()][0];drag.id=id;drag.gx=p.x-drag.c.x;drag.gy=p.y-drag.c.y;drag.moved=true;return}
+    const c=drag.c,tap=!drag.moved&&!drag.two&&performance.now()-drag.t0<500;
+    if(tap&&e.type==='pointerup')pop(c);
+    else if(!drag.two&&performance.now()-drag.lt<80){c.fx=Math.max(-2500,Math.min(2500,drag.vx));c.fy=Math.max(-2500,Math.min(2500,drag.vy))}
+    drag=null;stg.style.cursor=''}
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
+  root.addEventListener('mouseleave',()=>{ptr=null});
+  /* desktop: scroll or trackpad pinch over a cloud resizes it */
+  document.addEventListener('wheel',e=>{if(!live()||G.b||e.target.closest(BLOCK))return;const c=drag?drag.c:hit(e.clientX,e.clientY);if(!c)return;
+    e.preventDefault();c.s=Math.min(3,Math.max(.4,c.s*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))))},{passive:false});
+})();
 
 /* ---------- Archive (Pynk Project) ---------- */
 const pgArchive=document.getElementById('pg-archive');
