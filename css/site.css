@@ -229,7 +229,7 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .vid-on .mbar{color:#F9F9F9;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 @media (prefers-reduced-motion:reduce){.mbar.playing .mb-wave span,#mbPlay.mb-bump,#mbSkip.mb-bump{animation:none}}
 .side-art{position:absolute;left:clamp(22px,7vw,110px);top:0;bottom:0;margin:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:clamp(9px,1.5vw,15px);line-height:1.08;letter-spacing:0;color:var(--ink);opacity:.9;white-space:pre}
-.vid-on .side-art{display:none}
+.vid-on .side-art,.vid-on .clouds{display:none}
 @media (max-width:640px){.side-art{left:26px;font-size:9px}}
 .side-art.right{left:auto;right:clamp(22px,7vw,110px);transform:scaleX(-1)}
 @media (max-width:640px){.side-art.right{left:auto;right:26px}}
@@ -314,3 +314,12 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .ar-body .sw span{display:inline-flex;align-items:center;gap:5px;margin-right:8px}
 .ar-body .fill{font-size:.72rem}
 @media (prefers-reduced-motion:reduce){.ar-card{transition:none}}
+
+/* pixel clouds: landing page only, behind the pile, sign-up and banners */
+.clouds{position:fixed;left:0;right:0;top:0;height:42vh;z-index:0;pointer-events:none;overflow:hidden;color:#B7B7B7;opacity:.55;--cell:9px}
+@media (max-width:640px){.clouds{--cell:6px}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .clouds{color:#E4E4E4;opacity:.32}}
+:root[data-theme="dark"] .clouds{color:#E4E4E4;opacity:.32}
+.cloud{position:absolute;left:0;display:block;height:auto;shape-rendering:crispEdges;animation:cloudDrift linear infinite;will-change:transform}
+@keyframes cloudDrift{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
+@media (prefers-reduced-motion:reduce){.cloud{animation-play-state:paused}}

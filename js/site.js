@@ -575,6 +575,27 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
   function fill(){const h=stage.clientHeight||innerHeight;el.textContent=unit;const bh=el.scrollHeight||1;const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n')}
   fill();addEventListener('resize',()=>{clearTimeout(fill.t);fill.t=setTimeout(fill,150)});window._fillSideArt=fill})();
 
+/* ---------- Pixel clouds (landing page) ---------- */
+(function(){const box=document.getElementById('clouds');if(!box)return;
+  /* each cloud is a pixel grid: # is a filled block. Wider at the bottom, stepped at the top. */
+  const SHAPES=[
+    ['      ####      ','   #########    ','  ############  ',' ############## ','################'],
+    ['         #####          ','   ####  #######        ','  ################ ###  ',' ###################### ','########################','########################'],
+    ['    ###     ','  #######   ',' ########## ','############'],
+    ['           ######              ','     ###  ##########           ','   #######################     ','  ##########################   ',' ############################# ','###############################','###############################'],
+    ['   ####    ',' ######### ','###########'],
+    ['       ###  ####     ','    ##############   ','  ################## ',' ####################','#####################']];
+  /* top as % of the cloud band, size multiplier, seconds per crossing, start offset 0 to 1 */
+  const LAYOUT=[[2,1,150,.1],[14,1.2,210,.55],[34,.8,120,.8],[0,1.4,260,.3],[46,.7,105,.4],[24,1,175,.95]];
+  const NS='http://www.w3.org/2000/svg';
+  SHAPES.forEach((rows,i)=>{const w=rows[0].length,h=rows.length,[top,k,dur,off]=LAYOUT[i];
+    let d='';rows.forEach((r,y)=>{r.replace(/#+/g,(m,x)=>{d+='M'+x+' '+y+'h'+m.length+'v1h-'+m.length+'z';return m})});
+    const svg=document.createElementNS(NS,'svg');svg.setAttribute('class','cloud');svg.setAttribute('viewBox','0 0 '+w+' '+h);
+    /* light shade dither: two small dots per block, offset like a checkerboard */
+    svg.innerHTML='<defs><pattern id="cdot'+i+'" width="1" height="1" patternUnits="userSpaceOnUse"><rect width=".25" height=".25" fill="currentColor"/><rect x=".5" y=".5" width=".25" height=".25" fill="currentColor"/></pattern></defs><path d="'+d+'" fill="url(#cdot'+i+')"/>';
+    svg.style.top=top+'%';svg.style.width='calc('+(w*k)+' * var(--cell))';
+    svg.style.animationDuration=dur+'s';svg.style.animationDelay=(-dur*off)+'s';box.appendChild(svg)})})();
+
 /* ---------- Archive (Pynk Project) ---------- */
 const pgArchive=document.getElementById('pg-archive');
 const AR_CAT={csh003:'Garment',hoodiepink:'Garment',bagside:'Bag',bagfront:'Bag',bear:'Mark',star:'Mark',cs:'Mark',official:'Mark',graffiti:'Mark'};
