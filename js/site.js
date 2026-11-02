@@ -572,7 +572,14 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
 });
 /* ---------- Side art: repeat down the whole left side ---------- */
 (function(){const el=document.querySelector('.side-art');if(!el)return;const unit=el.textContent.replace(/\n+$/,'');
-  function fill(){const h=innerHeight;el.textContent=unit;el.style.bottom='auto';const bh=el.offsetHeight||1;el.style.bottom='';const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n')}
+  const su=document.getElementById('signup'),root=document.documentElement;
+  /* leave a clean gap in the braille behind the sign-up box, cut on whole lines, one line of space above and below */
+  function gap(){const a=el.getBoundingClientRect(),b=su&&su.getBoundingClientRect();
+    if(!b||!b.height||a.right<b.left&&innerWidth-a.right>b.right){root.classList.remove('sa-gap');return}
+    const cs=getComputedStyle(el);let lh=parseFloat(cs.lineHeight);if(!lh)lh=parseFloat(cs.fontSize)*1.08;
+    const t=Math.max(0,Math.floor((b.top-a.top)/lh)-1)*lh,u=(Math.ceil((b.bottom-a.top)/lh)+1)*lh;
+    root.style.setProperty('--sa-g1',t+'px');root.style.setProperty('--sa-g2',u+'px');root.classList.add('sa-gap')}
+  function fill(){const h=innerHeight;el.textContent=unit;el.style.bottom='auto';const bh=el.offsetHeight||1;el.style.bottom='';const n=Math.max(1,Math.ceil(h/bh)+1);el.textContent=Array(n).fill(unit).join('\n');gap()}
   fill();addEventListener('resize',()=>{clearTimeout(fill.t);fill.t=setTimeout(fill,150)});window._fillSideArt=fill})();
 
 /* ---------- Pixel clouds (landing page and lock screen) ---------- */
