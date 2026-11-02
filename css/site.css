@@ -48,6 +48,8 @@ footer button{pointer-events:auto;font:inherit;font-size:13px;color:var(--ink);b
 .legal-links{display:flex;gap:14px;font-size:11px;text-transform:uppercase;letter-spacing:.02em}
 .legal-links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px;pointer-events:auto}
 footer .legal-links{margin-top:6px}
+footer{gap:12px}
+footer .foot-r{display:flex;gap:8px;flex:none;pointer-events:auto}
 .lock .legal-links{justify-content:center;margin-top:18px}
 .vid-on footer .legal-links a{color:#F9F9F9;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
