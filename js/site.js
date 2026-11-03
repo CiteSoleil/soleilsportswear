@@ -147,7 +147,7 @@ document.getElementById('scrim').onclick=closeSheet;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&app.classList.contains('open'))closeSheet()});
 /* Remove: every piece breaks apart in pixel squares (same effect as the consent text). Shuffle brings them all back. */
 let pileRemoved=false;
-document.getElementById('removeAll').onclick=()=>{if(pileRemoved)return;pileRemoved=true;
+document.getElementById('removeAll').onclick=()=>{if(window._clearDraw)window._clearDraw();if(pileRemoved)return;pileRemoved=true;
   els.forEach(b=>{b.style.pointerEvents='none';disintegrate(b,()=>{b.style.display='none'})})};
 document.getElementById('shuffle').onclick=()=>{
   if(pileRemoved){pileRemoved=false;els.forEach(b=>{b.style.display=b.style.pointerEvents='';b.style.webkitMaskImage=b.style.maskImage=b.style.webkitMaskSize=b.style.maskSize=''})}
@@ -312,7 +312,7 @@ const TEXT={
 };
 
 /* Privacy, Terms, Refunds and Shipping are standalone pages in their own folders (privacy/, terms/, refunds/, shipping/). */
-const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','video'];
+const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','play'];
 const pgShop=document.getElementById('pg-shop'),pgText=document.getElementById('pg-text'),foot=document.querySelector('footer');
 let scattered=false,pendingShape=null,lastRoute=null;
 
@@ -547,7 +547,8 @@ function buildBooth(){
   (function loop(){if(!pgBooth.hidden){controls.update();renderer.render(scene,camera)}requestAnimationFrame(loop)})();
   return {resize};
 }
-let randomHits=0,randomTarget=1+Math.floor(Math.random()*2),lastSpecial=null;
+/* Random alternates: 1st tap the play page (homepage copy, no sign-up), 2nd tap the booth, and so on */
+let randomNext='play';
 function boothToast(){const el=document.getElementById('bToast');el.textContent='You found the booth';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2200)}
 
 /* ---------- Early access lock ---------- */
@@ -615,7 +616,6 @@ musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{l
   if(musicOn)playMusic();else bgm.pause();syncMusicBtn()});
 bgm.load();
 
-/* ---------- Video page ---------- */
 /* ---------- SMS sign-up: Klaviyo ---------- */
 /* Fill in both values from Klaviyo to turn the sign-up forms on:
    KLAVIYO_PUBLIC_KEY: Settings > Account > API keys > Public API key (6 characters, safe to publish)
@@ -665,11 +665,11 @@ function wireSms(form,input,box,msg,source,onSuccess){let busy=false;
       .catch(()=>{say('That didn’t go through. Check the number and try again.');SFX.deny()})
       .finally(()=>{busy=false;if(btn)btn.disabled=false})});
 }
-/* homepage and video page: the whole sign-up box breaks apart in pixel squares and is gone */
+/* homepage: the whole sign-up box breaks apart in pixel squares and is gone */
 wireSms(signup,document.getElementById('phone'),document.getElementById('smsOk'),document.getElementById('fine'),'Homepage',()=>{
   signup.style.pointerEvents='none';
-  disintegrate(signup,()=>{signup.style.display='none';appEl.classList.add('vid-joined');
-    toast(appEl.classList.contains('vid-on')?'You’re in. Enjoy the video':'You’re in. Watch for a text');
+  disintegrate(signup,()=>{signup.style.display='none';
+    toast('You’re in. Watch for a text');
     if(window._fillSideArt)window._fillSideArt()})});
 /* pop-up: the form and consent break apart, the confirmation stays in the pop-up */
 wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),document.getElementById('popOk'),document.getElementById('popFine'),'Pop-up',say=>{
@@ -677,13 +677,6 @@ wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),d
   parts.forEach(el=>disintegrate(el,()=>{if(--left)return;anchorPop();parts.forEach(x=>x.style.display='none');say('You’re in. Watch for a text from Soleilsportswear.')}))});
 /* the pop-up starts fresh each time it closes */
 function resetPop(){setTimeout(()=>{if(appEl.classList.contains('pop-on'))return;popEl.style.top=popEl.style.transform='';resetConsent(document.getElementById('popOk').closest('.consent'));resetConsent(document.getElementById('popForm'));document.getElementById('popFine').textContent=''},250)}
-const bgv=document.getElementById('bgv');let vidLoaded=false;
-bgv.addEventListener('error',()=>appEl.classList.add('vid-err'));
-function showVideo(on){
-  appEl.classList.toggle('vid-on',on);
-  if(on){if(!vidLoaded){vidLoaded=true;bgv.src='video.mp4'}const p=bgv.play();if(p&&p.catch)p.catch(()=>{})}
-  else if(!bgv.paused)bgv.pause();
-}
 /* ---------- Phone fields: numbers only, 10 digits ---------- */
 function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3)+') '+d.slice(3);return '('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6)}
 ['phone','popPhone'].forEach(id=>{const el=document.getElementById(id);if(!el)return;
@@ -730,7 +723,7 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
   const measure=()=>C.forEach(c=>{c.w=c.el.offsetWidth;c.h=c.el.offsetHeight});
   addEventListener('resize',()=>{clearTimeout(measure.t);measure.t=setTimeout(measure,150)});
   const root=document.documentElement,app0=document.getElementById('app');
-  const live=()=>root.classList.contains('is-home')&&!app0.classList.contains('vid-on')&&!app0.classList.contains('open')&&!app0.classList.contains('pop-on');
+  const live=()=>root.classList.contains('is-home')&&!app0.classList.contains('open')&&!app0.classList.contains('pop-on');
   const BLOCK='.item,.signup,button,a,input,label,.marquee,.mbar,.sheet,.pop,.b-toast,#musicBtn';
   const topPx=c=>c.top/100*innerHeight;
   /* hit test against the cloud's own pixel grid, with one block of slack */
@@ -793,11 +786,37 @@ function fmtPhone(d){if(d.length<4)return d;if(d.length<7)return '('+d.slice(0,3
     drag=null;stg.style.cursor=''}
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
   root.addEventListener('mouseleave',()=>{ptr=null});
+  window._clouds={hit,live,BLOCK,dragging:()=>!!drag};
   /* desktop: scroll or trackpad pinch over a cloud resizes it */
   document.addEventListener('wheel',e=>{if(!live()||G.b||e.target.closest(BLOCK))return;const c=drag?drag.c:hit(e.clientX,e.clientY);if(!c)return;
     e.preventDefault();c.s=Math.min(3,Math.max(.4,c.s*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))))},{passive:false});
 })();
 
+/* ---------- Finger drawing (homepage): drag on empty space to leave a see-through rainbow streak ---------- */
+(function(){const stg=document.getElementById('stage');if(!stg)return;
+  const cv=document.createElement('canvas');cv.className='draw';cv.setAttribute('aria-hidden','true');stg.prepend(cv);
+  const g=cv.getContext('2d');let dpr=0,W=0,H=0,pen=null,hue=Math.random()*360,dirty=false;
+  /* resizing keeps what is already drawn */
+  function size(){const nd=Math.min(devicePixelRatio||1,2),nw=innerWidth,nh=innerHeight;if(nw===W&&nh===H&&nd===dpr)return;
+    let old=null;if(dirty&&cv.width){old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;old.getContext('2d').drawImage(cv,0,0)}
+    const pw=W,ph=H;dpr=nd;W=nw;H=nh;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    g.setTransform(dpr,0,0,dpr,0,0);if(old)g.drawImage(old,0,0,pw,ph);g.lineCap=g.lineJoin='round'}
+  size();addEventListener('resize',size);
+  function seg(x,y){const dx=x-pen.x,dy=y-pen.y,d=Math.hypot(dx,dy);if(d<.5&&pen.moved)return;
+    hue=(hue+d*.45)%360;g.strokeStyle='hsl('+hue.toFixed(0)+',100%,55%)';g.lineWidth=W<640?10:14;
+    g.beginPath();g.moveTo(pen.x,pen.y);g.lineTo(x+(d?0:.01),y);g.stroke();pen.x=x;pen.y=y;pen.moved=true;dirty=true}
+  document.addEventListener('pointerdown',e=>{const C=window._clouds;
+    if(pen||!C||!C.live()||C.dragging()||G.b||(e.pointerType==='mouse'&&e.button!==0))return;
+    if(!e.target.closest||!e.target.closest('#stage')||e.target.closest(C.BLOCK)||C.hit(e.clientX,e.clientY))return;
+    e.preventDefault();pen={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};seg(e.clientX,e.clientY)});
+  document.addEventListener('pointermove',e=>{if(!pen||e.pointerId!==pen.id)return;
+    const pts=e.getCoalescedEvents?e.getCoalescedEvents():[];(pts.length?pts:[e]).forEach(p=>seg(p.clientX,p.clientY))});
+  const stop=e=>{if(pen&&e.pointerId===pen.id)pen=null};
+  document.addEventListener('pointerup',stop);document.addEventListener('pointercancel',stop);
+  /* Remove also breaks the drawing apart */
+  window._clearDraw=()=>{if(!dirty)return;dirty=false;pen=null;
+    disintegrate(cv,()=>{g.clearRect(0,0,W,H);cv.style.webkitMaskImage=cv.style.maskImage=cv.style.webkitMaskSize=cv.style.maskSize=''})};
+})();
 /* mirror the side art on the right */
 (function(){const l=document.querySelector('.side-art');if(!l)return;const r=l.cloneNode(true);r.classList.add('right');l.parentNode.insertBefore(r,l.nextSibling);
   new MutationObserver(()=>{r.textContent=l.textContent}).observe(l,{childList:true,characterData:true,subtree:true})})();
@@ -808,19 +827,17 @@ function route(){
   let r=(location.hash.slice(1)||'home').toLowerCase();
   /* old #privacy, #terms, #refunds and #shipping links go to the standalone pages */
   if(LEGAL_PAGES.includes(r)){location.replace(r+'/');return}
-  if(r==='random'){randomHits++;if(randomHits>=randomTarget){randomHits=0;randomTarget=1+Math.floor(Math.random()*2);
-      const sp=lastSpecial?(lastSpecial==='booth'?'video':'booth'):(Math.random()<.5?'booth':'video');lastSpecial=sp;
-      location.replace('#'+sp);if(sp==='booth'&&unlocked)boothToast();return}
-    const pool=ROUTES.filter(x=>x!==lastRoute&&x!=='booth'&&x!=='video');location.replace('#'+pool[Math.floor(Math.random()*pool.length)]);return}
+  if(r==='random'){const sp=randomNext;randomNext=sp==='play'?'booth':'play';
+    location.replace('#'+sp);if(sp==='booth'&&unlocked)boothToast();return}
   if(!ROUTES.includes(r))r='home';
-  const home=r==='home'||r==='video';
+  const home=r==='home'||r==='play';
   document.documentElement.classList.toggle('is-home',home);
   document.documentElement.classList.toggle('show-clouds',r!=='booth');
-  stage.hidden=!home;foot.hidden=!home;showVideo(r==='video'&&(unlocked||OPEN_ROUTES.includes(r)));
+  stage.hidden=!home;foot.hidden=!home;appEl.classList.toggle('no-sms',r==='play');
   curRoute=r;
   const locked=isLocked(r);
   pgLock.hidden=!locked;
-  if(locked){showVideo(false);stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;
+  if(locked){appEl.classList.remove('no-sms');stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;
     document.documentElement.classList.remove('is-home');document.getElementById('lockErr').textContent='';
     closePop();clearTimeout(window._popT);window._popT=setTimeout(()=>{if(!pgLock.hidden)openPop()},350);
     if(lastRoute!==null&&lastRoute!==r)SFX.nav();lastRoute=r;document.title='Locked | soleilsportswear';return}
@@ -828,7 +845,7 @@ function route(){
   pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';
   if(r==='booth'){pgBooth.scrollTop=0;requestAnimationFrame(initBooth)}
   if(home&&!scattered){scattered=true;requestAnimationFrame(scatter)}
-  if(home&&window._fillSideArt)requestAnimationFrame(window._fillSideArt);
+  if(home&&window._fillSideArt){window._fillSideArt();requestAnimationFrame(window._fillSideArt)}
   if(SHOP[r]){
     buildShop(r);
     let idx=0,v=0;if(pendingShape){const k=SHOP[r].items.findIndex(x=>x.shape===pendingShape||(x.views&&x.views.some(w=>w[0]===pendingShape)));
