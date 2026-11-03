@@ -233,7 +233,7 @@ sv.innerHTML='<button type="button" class="sv-nav prev" aria-label="Back"><svg v
 document.body.appendChild(sv);
 const svFrame=sv.querySelector('.sv-frame'),svMedia=sv.querySelector('.sv-media'),svBars=sv.querySelector('.sv-bars'),svSnd=sv.querySelector('.sv-snd'),svTap=sv.querySelector('.sv-tapsnd');
 const svVid=document.createElement('video');svVid.playsInline=true;svVid.setAttribute('playsinline','');svVid.preload='auto';
-let svOn=false,svH=0,svI=0,svT=0,svPaused=false,svMuted=false,svMusicWas=false,svOpener=null,svLast=0,svFade=null;
+let svOn=false,svH=0,svI=0,svT=0,svPaused=false,svMuted=false,svMusicWas=false,svOpener=null,svLast=0;
 function svItem(){return MEDIA[svH].items[svI]}
 function svSetPaused(p){svPaused=p;if(svItem().type==='video'){if(p)svVid.pause();else svVid.play().catch(()=>{})}}
 function svSyncSnd(){svSnd.innerHTML=ICON_SND(!svMuted);svSnd.setAttribute('aria-label',svMuted?'Unmute':'Mute');svSnd.hidden=svItem().type!=='video'}
@@ -261,9 +261,8 @@ function svLoop(now){if(!svOn)return;const dt=Math.min((now-svLast)/1000,.1);svL
   const b=svBars.children[svI];if(b)b.firstChild.style.width=Math.min(100,p*100).toFixed(2)+'%';
   requestAnimationFrame(svLoop)}
 svVid.addEventListener('ended',()=>{if(svOn)svNext()});
-function hushMusic(){svMusicWas=!bgm.paused;storyHush=true;clearInterval(svFade);
-  if(!svMusicWas)return;const v0=bgm.volume;let k=0;svFade=setInterval(()=>{k++;bgm.volume=Math.max(0,v0*(1-k/6));if(k>=6){clearInterval(svFade);bgm.pause()}},50)}
-function restoreMusic(){clearInterval(svFade);storyHush=false;if(svMusicWas)playMusic();else bgm.volume=.6}
+function hushMusic(){svMusicWas=SoleilRadio.playing();storyHush=true;if(svMusicWas)SoleilRadio.pause()}
+function restoreMusic(){storyHush=false;if(svMusicWas)SoleilRadio.play()}
 function openStory(id,i){const h=MEDIA.findIndex(x=>x.id===id);if(h<0)return;
   svOpener=document.activeElement;svH=h;svI=i||0;svOn=true;sv.classList.add('on');document.documentElement.classList.add('sv-open');
   hushMusic();SFX.select();
@@ -307,13 +306,13 @@ const TEXT={
  campaigns:'<header class="ptitle rule"><h1>Campaigns</h1><p>Lookbooks and launches</p></header><div class="cards">'+['01','02','03','04'].map(n=>'<div class="card"><span>Campaign '+n+'</span><span>Coming soon</span></div>').join('')+'</div>',
  get media(){return mediaHTML()},
  more:'<header class="ptitle rule"><h1>More</h1><p>Every page in one place</p></header><nav class="links" aria-label="All pages">'+
-   [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
+   [['home','Home'],['mens','Mens'],['womens','Womens'],['accessories','Accessories'],['campaigns','Campaigns'],['media','Media'],['radio','Radio'],['random','Random'],['about','About'],['faq','FAQ'],['cart','Cart']].map(l=>'<a href="#'+l[0]+'">'+l[1]+'</a>').join('')+
    '<a href="shipping/">Shipping</a><a href="refunds/">Refunds</a><a href="terms/">Terms</a><a href="privacy/">Privacy</a><a href="https://instagram.com/soleilsportswear" target="_blank" rel="noopener">Instagram</a></nav>'
 };
 
 /* Privacy, Terms, Refunds and Shipping are standalone pages in their own folders (privacy/, terms/, refunds/, shipping/). */
-const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','play'];
-const pgShop=document.getElementById('pg-shop'),pgText=document.getElementById('pg-text'),foot=document.querySelector('footer');
+const ROUTES=['home','mens','womens','accessories','campaigns','media','about','faq','more','cart','booth','play','radio'];
+const pgRadio=document.getElementById('pg-radio'),pgShop=document.getElementById('pg-shop'),pgText=document.getElementById('pg-text'),foot=document.querySelector('footer');
 let scattered=false,pendingShape=null,lastRoute=null;
 
 /* sounds */
@@ -583,38 +582,32 @@ document.getElementById('lockForm').addEventListener('submit',async e=>{
   }else{err.textContent='That code didn\u2019t work.';SFX.deny();f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');inp.select()}
 });
 
-/* ---------- Background music ---------- */
-const bgm=document.getElementById('bgm'),musicBtn=document.getElementById('musicBtn');
+/* ---------- Background music: the bar controls SOLEIL radio (js/radio.js) ---------- */
+const musicBtn=document.getElementById('musicBtn');
 let musicOn=true;try{musicOn=localStorage.getItem('ssw-music')!=='off'}catch(_){}
-let musicReady=false,musicStarted=false;
-const mbar=document.getElementById('mbar'),mbPlay=document.getElementById('mbPlay'),mbWave=document.getElementById('mbWave');
+let musicStarted=false;
+const mbar=document.getElementById('mbar'),mbPlay=document.getElementById('mbPlay'),mbWave=document.getElementById('mbWave'),mbSkip=document.getElementById('mbSkip');
 mbWave.textContent=mbWave.textContent.repeat(60);
-function syncMusicBtn(){musicBtn.setAttribute('aria-pressed',musicOn);musicBtn.setAttribute('aria-label',musicOn?'Music on. Tap to mute':'Music off. Tap to play');musicBtn.classList.toggle('playing',musicOn&&!bgm.paused);
-  const on=!bgm.paused;const st=on?'pause':'play';
+function syncMusicBtn(){musicBtn.setAttribute('aria-pressed',musicOn);musicBtn.setAttribute('aria-label',musicOn?'Music on. Tap to mute':'Music off. Tap to play');musicBtn.classList.toggle('playing',musicOn&&SoleilRadio.playing());
+  const on=SoleilRadio.playing();const st=on?'pause':'play';
   if(mbPlay.dataset.s!==st){mbPlay.dataset.s=st;mbPlay.innerHTML=on?'<svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="4" height="14"/><rect x="12" y="3" width="4" height="14"/></svg>':'<svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M5 3l12 7-12 7z"/></svg>';mbPlay.classList.remove('mb-bump');void mbPlay.offsetWidth;mbPlay.classList.add('mb-bump')}
   mbPlay.setAttribute('aria-label',on?'Pause music':'Play music');mbar.classList.toggle('playing',on)}
+function saveMusic(on){musicOn=on;try{localStorage.setItem('ssw-music',on?'on':'off')}catch(_){}}
+function playMusic(){if(!musicOn||storyHush)return;SoleilRadio.play()}
 mbPlay.addEventListener('click',e=>{e.stopPropagation();
-  if(bgm.paused){musicOn=true;try{localStorage.setItem('ssw-music','on')}catch(_){}playMusic()}
-  else{musicOn=false;try{localStorage.setItem('ssw-music','off')}catch(_){}bgm.pause()}
+  if(SoleilRadio.playing()){saveMusic(false);SoleilRadio.pause()}else{saveMusic(true);musicStarted=true;SoleilRadio.play()}
   syncMusicBtn()});
-function playMusic(){if(!musicOn||storyHush)return;bgm.volume=.6;const p=bgm.play();if(p&&p.then)p.then(()=>{musicStarted=true;musicReady=true;syncMusicBtn()}).catch(()=>{})}
-/* playlist: plays in order, then starts over. Add files here to add tracks. */
-const TRACKS=['music.mp3','music2.mp3','music3.m4a'];
-let trackIdx=0,trackFails=0;
-const mbSkip=document.getElementById('mbSkip');
-function goTrack(i){trackIdx=(i+TRACKS.length)%TRACKS.length;bgm.src=TRACKS[trackIdx];bgm.load();if(musicStarted||!bgm.paused)playMusic()}
-bgm.addEventListener('ended',()=>goTrack(trackIdx+1));
 mbSkip.addEventListener('click',e=>{e.stopPropagation();mbSkip.classList.remove('mb-bump');void mbSkip.offsetWidth;mbSkip.classList.add('mb-bump');
-  musicOn=true;try{localStorage.setItem('ssw-music','on')}catch(_){}musicStarted=true;goTrack(trackIdx+1)});
-bgm.addEventListener('canplay',()=>{trackFails=0;musicReady=true;mbar.hidden=false;syncMusicBtn()});
-/* a missing or broken file is skipped; the bar hides only if none of the tracks load */
-bgm.addEventListener('error',()=>{trackFails++;if(trackFails>=TRACKS.length){musicBtn.hidden=true;mbar.hidden=true;return}goTrack(trackIdx+1)});
-bgm.addEventListener('play',syncMusicBtn);bgm.addEventListener('pause',syncMusicBtn);
+  saveMusic(true);musicStarted=true;SoleilRadio.next()});
+/* tapping the waveform opens SOLEIL radio */
+mbar.querySelector('.mb-wave').addEventListener('click',()=>{location.hash='#radio'});
+SoleilRadio.onChange(()=>{if(SoleilRadio.playing())musicStarted=true;if(SoleilRadio.failed){musicBtn.hidden=true;mbar.hidden=true}syncMusicBtn()});
+mbar.hidden=false;
 /* phones only allow sound from the end of a tap (touchend, pointerup, click), not the start */
-['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#mbSkip,#musicBtn'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
-musicBtn.addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('ssw-music',musicOn?'on':'off')}catch(_){}
-  if(musicOn)playMusic();else bgm.pause();syncMusicBtn()});
-bgm.load();
+['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#mbSkip,#musicBtn,.radio-host'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
+musicBtn.addEventListener('click',e=>{e.stopPropagation();saveMusic(!musicOn);if(musicOn)playMusic();else SoleilRadio.pause();syncMusicBtn()});
+/* load the player once the page is idle, so it never slows the first paint */
+addEventListener('load',()=>{const go=()=>SoleilRadio.load().catch(()=>{});'requestIdleCallback' in window?requestIdleCallback(go,{timeout:3000}):setTimeout(go,1200)});
 
 /* ---------- SMS sign-up: Klaviyo ---------- */
 /* Fill in both values from Klaviyo to turn the sign-up forms on:
@@ -857,12 +850,13 @@ function route(){
   curRoute=r;
   const locked=isLocked(r);
   pgLock.hidden=!locked;
-  if(locked){appEl.classList.remove('no-sms');stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;
+  if(locked){appEl.classList.remove('no-sms');stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;pgRadio.hidden=true;
     document.documentElement.classList.remove('is-home');document.getElementById('lockErr').textContent='';
     closePop();clearTimeout(window._popT);window._popT=setTimeout(()=>{if(!pgLock.hidden)openPop()},350);
     if(lastRoute!==null&&lastRoute!==r)SFX.nav();lastRoute=r;document.title='Locked | soleilsportswear';return}
   closePop();
-  pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';
+  pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';pgRadio.hidden=r!=='radio';
+  if(r==='radio')SoleilRadio.show();
   if(r==='booth'){pgBooth.scrollTop=0;requestAnimationFrame(initBooth)}
   if(home&&!scattered){scattered=true;requestAnimationFrame(scatter)}
   if(home&&window._fillSideArt){window._fillSideArt();requestAnimationFrame(window._fillSideArt)}
@@ -877,7 +871,7 @@ function route(){
   if(r==='cart'){drawCart();pgText.scrollTop=0}
   if(lastRoute!==null&&lastRoute!==r)SFX.nav();
   lastRoute=r;
-  document.title=(r==='home'?'soleilsportswear':r.toUpperCase()+' | soleilsportswear');
+  document.title=(r==='home'?'soleilsportswear':r==='radio'?'SOLEIL radio | soleilsportswear':r.toUpperCase()+' | soleilsportswear');
 }
 addEventListener('hashchange',route);
 saveCart();

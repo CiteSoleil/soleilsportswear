@@ -1,0 +1,10 @@
+/* SOLEIL radio: the /radio page (#radio). The player itself is drawn by Webamp with the
+   soleil_radio_v1 skin; js/radio.js scales it to fit (zoom) and keeps drags under the finger. */
+#pg-radio{display:flex;flex-direction:column;overflow:hidden}
+#pg-radio[hidden]{display:none!important}
+.radio-head{padding:18px var(--pad) 14px}
+.radio-head h1{margin:0;font-weight:700;letter-spacing:-.03em;line-height:1;font-size:clamp(1.6rem,6vw,2.6rem);text-transform:none}
+.radio-stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.radio-host{position:absolute;left:0;top:0;text-transform:none;letter-spacing:normal}
+/* the waveform in the music bar opens SOLEIL radio */
+.mbar .mb-wave{cursor:pointer}

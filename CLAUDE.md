@@ -75,7 +75,11 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 | `index.html` | The whole site: HTML, CSS, JS and most images (embedded as data URIs) | Claude |
 | `my-items.js` | Extra pieces Stevens adds to the homepage pile | **Stevens only** |
 | `site-settings.js` | Which pages are open without the code, and whether the homepage is locked | **Stevens** (Claude can explain it) |
-| `music.mp3` | Background music, loops site-wide | Stevens supplies |
+| `assets/audio/` | The SOLEIL radio songs (`hmu-invada.mp3`, `boosie-flow.mp3`, `not-tha-same.m4a`) | Stevens supplies |
+| `radio/tracks.json` | SOLEIL radio tracklist: title, artist, url (from the site root), duration in seconds. Add a song by adding an entry; leave `artist` empty to show the title only | Stevens or Claude |
+| `assets/skins/soleil_radio_v1.wsz` | The SOLEIL radio Winamp skin | Stevens supplies |
+| `js/radio.js`, `css/radio.css` | SOLEIL radio (Webamp), self-contained so it can move into a Shopify theme | Claude |
+| `radio/index.html` | Sends soleilsportswear.com/radio/ to `#radio` | Claude |
 | `video.mp4` | Sample video in the Media highlights until real videos arrive | Stevens supplies |
 | `privacy/`, `terms/`, `refunds/`, `shipping/` | Standalone legal pages (each folder has its own `index.html`), styled by `css/legal.css`. No JavaScript, never locked. | Claude |
 | `checklist.html` | Tester checklist (Pass, Fail, Skip, send results) | Claude, when features change |
@@ -88,7 +92,7 @@ The brand site for **Cite Soleil** and its clothing line **soleilsportswear**.
 ## 5. How the site works
 
 **One page, hash routes.** Every "page" is a section shown or hidden by `route()` on `hashchange`. Routes:
-`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `about`, `faq`, `more`, `cart`, `booth`, `play`, plus `random` (redirects).
+`home`, `mens`, `womens`, `accessories`, `campaigns`, `media`, `about`, `faq`, `more`, `cart`, `booth`, `play`, `radio`, plus `random` (redirects).
 Old `#privacy`, `#terms`, `#refunds` and `#shipping` links redirect to the standalone pages (`LEGAL_PAGES` in `route()`). Link to them as `privacy/`, `terms/`, `refunds/`, `shipping/` (relative paths, so they also work on the github.io test link).
 Because it is one document, music keeps playing between pages. Keep that true in any rebuild (page transitions if pages become separate files or a Shopify theme).
 
@@ -106,7 +110,9 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Pixel clouds** drift behind everything on every page except the 3D booth (18 clouds, 6 shapes, full screen height, with extra clouds through the middle). Pages sit above them (`.page` has z-index 1). Their motion is driven by JavaScript, not CSS. On the homepage only, they are interactive from empty space (anything starting on a sticker, the sign-up box, a button or a banner goes to that instead): **tap** pops a cloud in pixel squares and a new one drifts in from the left 2.5 to 6 seconds later; **drag** moves it and a flick sends it gliding; while dragging, a **second finger pinches** to resize (0.4x to 3x), and on desktop **scroll or trackpad pinch** over a cloud resizes it; clouds **slide away** from a nearby mouse or finger and settle back. On every other page the clouds just drift.
 
-**Music bar** above the bottom banner: play and pause icons (drawn SVG, not text symbols), scrolling waveform. Music starts on the first tap anywhere, loops, and remembers mute. A round speaker button covers other pages.
+**Music bar** above the bottom banner on every page: play and pause icons (drawn SVG, not text symbols), skip, scrolling waveform. It controls **SOLEIL radio** (below), so it is always the same song as the radio page. Music starts on the first tap anywhere, loops the playlist, and remembers mute (`localStorage: ssw-music`). Tapping the waveform opens SOLEIL radio. The round speaker button (`#musicBtn`) is still in the code but stays hidden; Stevens said not to use it yet.
+
+**SOLEIL radio** (exact name and capitalization). One Webamp 2.3.1 player (loaded from jsDelivr, pinned) plays all site music. `js/radio.js` loads it when the page is idle after load, so it never slows the first paint, and right away on `#radio`. The page `#radio` (also soleilsportswear.com/radio/, a redirect) shows the main window, equalizer and playlist stacked vertically in the `soleil_radio_v1.wsz` skin, scaled with CSS zoom to fit (full width on phones, up to 2.4x). Windows can be dragged anywhere on the page; because Webamp does not know about the zoom, `radio.js` rescales mouse and touch coordinates for drags that start on the player so windows stay under the finger. The close button is disabled (closing would leave the bar with nothing to control). The player is only drawn once `#radio` is opened; until then the music plays without it. Locked like the other pages. Opening a Media highlight pauses it and closing resumes it. Song sources: HMU INVADA (same file as `HMU INVADA.mp3` in Stevens's Downloads; no artist known), Boosie Flow by Montana 700 (ID3 tags), Not Tha Same (prod. clibbo fallwood) (name of the file Stevens uploaded; no artist known). **Shopify plan:** use Swup page transitions with the player and music bar outside the swapped container in `theme.liquid`; re-run theme scripts after each swap.
 
 **Lock.** Every page except the homepage shows a lock screen. The legal pages are separate files outside the app, so the lock and `site-settings.js` never touch them. Code: **SOLEIL** (case-insensitive, stored only as a SHA-256 hash). The SMS pop-up appears on each locked page visit. Unlocking is remembered on that device (`localStorage: ssw-access`). `site-settings.js` can open chosen pages and lock the homepage. This is a soft lock for a static site, not real security.
 
@@ -114,7 +120,7 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 **Shop pages** (Mens, Womens, Accessories): item rail, corner frame, pixel build-in, console sounds, sold-out size, add to cart. Placeholder prices and copy. CSH003 hoodie is in Mens and Womens (all hoodies sell as both). The backpack is one item in Accessories with two angles (side and front): arrows on its picture switch views, and a label shows which one (`views` on the shop item; `showViews` and `stepView` in `js/site.js`). Tapping either backpack piece on the homepage opens it on that angle. The pink hoodie back is not on shop pages (not a product photo).
 
-**Media (highlights).** The Media page has four highlight circles (01 to 04) and a grid of every slide below them. Tapping a circle or tile opens a full-screen story viewer: progress bars on top, tap the left third to go back and anywhere else to go forward, hold to pause, swipe down or X to close, swipe sideways to change highlight, arrow keys and side arrows on desktop. Photos show for 5 seconds (`PHOTO_SECS`); videos play their full length with sound. Opening the viewer fades the site music out and closing it brings it back (`hushMusic`, `restoreMusic`, `storyHush`). If a phone blocks sound, the video plays muted with a red Tap for sound button. Content lives in the `MEDIA` list in `js/site.js` (each highlight: `id`, `cover`, `items` of `{type:'photo'|'video', src}`). Right now every slide is a placeholder and the videos are `video.mp4` marked Sample. Plan: Stevens moves the originals from his phone (not Instagram downloads) into a Google Drive folder with subfolders 01 to 04, numbered in play order; photos get resized to 1080 x 1920 and stored in `assets/media/01/` etc.; videos go to Cloudflare Stream (Stevens sets up the account and gives Claude a Stream API token privately, never stored in the repo).
+**Media (highlights).** The Media page has four highlight circles (01 to 04) and a grid of every slide below them. Tapping a circle or tile opens a full-screen story viewer: progress bars on top, tap the left third to go back and anywhere else to go forward, hold to pause, swipe down or X to close, swipe sideways to change highlight, arrow keys and side arrows on desktop. Photos show for 5 seconds (`PHOTO_SECS`); videos play their full length with sound. Opening the viewer pauses SOLEIL radio and closing it resumes it (`hushMusic`, `restoreMusic`, `storyHush`). If a phone blocks sound, the video plays muted with a red Tap for sound button. Content lives in the `MEDIA` list in `js/site.js` (each highlight: `id`, `cover`, `items` of `{type:'photo'|'video', src}`). Right now every slide is a placeholder and the videos are `video.mp4` marked Sample. Plan: Stevens moves the originals from his phone (not Instagram downloads) into a Google Drive folder with subfolders 01 to 04, numbered in play order; photos get resized to 1080 x 1920 and stored in `assets/media/01/` etc.; videos go to Cloudflare Stream (Stevens sets up the account and gives Claude a Stream API token privately, never stored in the repo).
 
 **Cart.** Quantities, remove, subtotal, demo checkout. Saved in `localStorage: ssw-cart`.
 
@@ -163,4 +169,4 @@ Because it is one document, music keeps playing between pages. Keep that true in
 
 ## 9. Testing
 
-`checklist.html` lives next to the site at `/checklist.html`. Testers mark Pass, Fail or Skip and send results. It does not yet cover the lock, the SMS pop-up, music or the booth; add those sections.
+`checklist.html` lives next to the site at `/checklist.html`. Testers mark Pass, Fail or Skip and send results. It does not yet cover the booth in full; add to it when features change.
