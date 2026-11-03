@@ -87,8 +87,8 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .page button:focus-visible,.page a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .page .rule{border-bottom:var(--rule) solid var(--ink)}
 .page .rule-t{border-top:var(--rule) solid var(--ink)}
-.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px var(--pad);font-size:1rem}
-.bar .right{display:flex;gap:20px}
+#pg-shop .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px var(--pad);font-size:1rem}
+#pg-shop .bar .right{display:flex;gap:20px}
 #cart.bump{animation:blink .36s steps(2) 2}
 @keyframes blink{50%{background:var(--ink);color:var(--bg)}}
 .shop{display:grid;grid-template-columns:76px minmax(0,1fr);gap:16px;padding:20px var(--pad) 28px;max-width:980px}

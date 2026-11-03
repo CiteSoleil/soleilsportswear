@@ -48,6 +48,21 @@
   function mount(){
     const box=stage();if(!wa||rendered||!box||!box.clientWidth)return;
     host=document.createElement('div');host.className='radio-host';box.appendChild(host);fit();
+    /* one tap or click on a song plays it (Winamp itself needs a double click) */
+    const cellAt=t=>t&&t.closest&&t.closest('.track-cell');
+    const playCell=cell=>{const i=[...cell.parentElement.children].indexOf(cell),titles=host.querySelector('.playlist-track-titles');
+      const m=titles&&titles.children[i]&&/^\s*(\d+)\./.exec(titles.children[i].textContent);if(!m)return;
+      wa.setCurrentTrack(+m[1]-1);wa.play()};
+    host.addEventListener('click',e=>{const cell=cellAt(e.target);if(!cell||e.shiftKey||e.metaKey||e.ctrlKey)return;playCell(cell)},true);
+    /* Phones: Webamp turns the mouse event a phone sends after a tap into a drag that moves the song
+       up a row. Taps on songs are handled here and never reach Webamp. */
+    let tap=null;
+    host.addEventListener('touchstart',e=>{const cell=cellAt(e.target);if(!cell)return;e.stopPropagation();
+      const t=e.changedTouches[0];tap={cell,x:t.clientX,y:t.clientY}},{capture:true,passive:true});
+    host.addEventListener('touchmove',e=>{if(!tap)return;e.stopPropagation();const t=e.changedTouches[0];
+      if(Math.hypot(t.clientX-tap.x,t.clientY-tap.y)>10)tap=null},{capture:true,passive:true});
+    host.addEventListener('touchend',e=>{if(!cellAt(e.target))return;e.stopPropagation();e.preventDefault();
+      if(tap)playCell(tap.cell);tap=null},{capture:true,passive:false});
     rendered=wa.renderInto(host).then(()=>{fit();emit()})}
   /* scale to the stage: bigger on desktop, full width on phones; the host fills the stage in Winamp pixels */
   function fit(){
@@ -64,7 +79,8 @@
   const scaleEv=e=>{if(zoom===1)return;
     const fix=o=>{try{const x=o.clientX/zoom,y=o.clientY/zoom;Object.defineProperty(o,'clientX',{value:x,configurable:true});Object.defineProperty(o,'clientY',{value:y,configurable:true})}catch(_){}};
     if(e.touches){[...new Set([...e.touches,...e.targetTouches,...e.changedTouches])].forEach(fix)}else fix(e)};
-  ['mousedown','touchstart'].forEach(t=>addEventListener(t,e=>{if(host&&host.contains(e.target)){dragging=true;scaleEv(e)}},{capture:true,passive:true}));
+  /* the song list is left out: Webamp checks list drags against the list's on-screen box, so scaling would reorder songs on a tap */
+  ['mousedown','touchstart'].forEach(t=>addEventListener(t,e=>{if(host&&host.contains(e.target)&&!e.target.closest('.playlist-tracks')){dragging=true;scaleEv(e)}},{capture:true,passive:true}));
   ['mousemove','touchmove'].forEach(t=>addEventListener(t,e=>{if(dragging)scaleEv(e)},{capture:true,passive:true}));
   ['mouseup','touchend','touchcancel'].forEach(t=>addEventListener(t,()=>{dragging=false},{capture:true,passive:true}));
 
