@@ -147,11 +147,19 @@ document.getElementById('scrim').onclick=closeSheet;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&app.classList.contains('open'))closeSheet()});
 /* Remove: every piece breaks apart in pixel squares (same effect as the consent text). Shuffle brings them all back. */
 let pileRemoved=false;
-document.getElementById('removeAll').onclick=()=>{if(window._clearDraw)window._clearDraw();if(pileRemoved)return;pileRemoved=true;
-  els.forEach(b=>{b.style.pointerEvents='none';disintegrate(b,()=>{b.style.display='none'})})};
+function clearPile(animate){if(pileRemoved)return;pileRemoved=true;
+  els.forEach(b=>{b.style.pointerEvents='none';if(animate)disintegrate(b,()=>{b.style.display='none'});else b.style.display='none'})}
+document.getElementById('removeAll').onclick=()=>{if(window._clearDraw)window._clearDraw();clearPile(true)};
 document.getElementById('shuffle').onclick=()=>{
   if(pileRemoved){pileRemoved=false;els.forEach(b=>{b.style.display=b.style.pointerEvents='';b.style.webkitMaskImage=b.style.maskImage=b.style.webkitMaskSize=b.style.maskSize=''})}
   scatter()};
+/* After a successful SMS sign-up (homepage or pop-up), for the rest of this browser session: the sign-up box
+   and the pop-up are gone, and the homepage starts as a blank canvas. Shuffle and Remove still work. */
+let smsJoined=false;try{smsJoined=sessionStorage.getItem('ssw-sms')==='1'}catch(_){}
+function smsDone(){smsJoined=true;try{sessionStorage.setItem('ssw-sms','1')}catch(_){}
+  const lockSms=document.getElementById('lockSms');if(lockSms)lockSms.hidden=true;
+  const seen=!stage.hidden;if(seen&&window._clearDraw)window._clearDraw();clearPile(seen)}
+if(smsJoined){signup.style.display='none';clearPile(false);document.getElementById('lockSms').hidden=true}
 let rw=0;addEventListener('resize',()=>{clearTimeout(rw);rw=setTimeout(()=>{els.forEach(b=>{size(b);clamp(b);apply(b)})},120)});
 /* Banners: hold to stop, drag to scrub, let go to resume */
 document.querySelectorAll('.marquee').forEach((m,i)=>{
@@ -662,12 +670,13 @@ function wireSms(form,input,box,msg,source,onSuccess){let busy=false;
 }
 /* homepage: the whole sign-up box breaks apart in pixel squares and is gone */
 wireSms(signup,document.getElementById('phone'),document.getElementById('smsOk'),document.getElementById('fine'),'Homepage',()=>{
-  signup.style.pointerEvents='none';
+  signup.style.pointerEvents='none';smsDone();
   disintegrate(signup,()=>{signup.style.display='none';
     toast('You’re in. Watch for a text');
     if(window._fillSideArt)window._fillSideArt()})});
 /* pop-up: the form and consent break apart, the confirmation stays in the pop-up */
 wireSms(document.getElementById('popForm'),document.getElementById('popPhone'),document.getElementById('popOk'),document.getElementById('popFine'),'Pop-up',say=>{
+  smsDone();signup.style.display='none';
   const parts=[document.getElementById('popForm'),document.getElementById('popOk').closest('.consent')];let left=parts.length;
   parts.forEach(el=>disintegrate(el,()=>{if(--left)return;anchorPop();parts.forEach(x=>x.style.display='none');say('You’re in. Watch for a text from Soleilsportswear.')}))});
 /* the pop-up starts fresh each time it closes */
@@ -854,7 +863,7 @@ function route(){
   pgLock.hidden=!locked;
   if(locked){appEl.classList.remove('no-sms');stage.hidden=true;foot.hidden=true;pgShop.hidden=true;pgText.hidden=true;pgBooth.hidden=true;pgRadio.hidden=true;
     document.documentElement.classList.remove('is-home');document.getElementById('lockErr').textContent='';
-    closePop();clearTimeout(window._popT);window._popT=setTimeout(()=>{if(!pgLock.hidden)openPop()},350);
+    closePop();clearTimeout(window._popT);window._popT=setTimeout(()=>{if(!pgLock.hidden&&!smsJoined)openPop()},350);
     if(lastRoute!==null&&lastRoute!==r)SFX.nav();lastRoute=r;document.title='Locked | soleilsportswear';return}
   closePop();
   pgShop.hidden=!SHOP[r];pgText.hidden=!TEXT[r];pgBooth.hidden=r!=='booth';pgRadio.hidden=r!=='radio';
