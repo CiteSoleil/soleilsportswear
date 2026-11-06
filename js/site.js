@@ -555,7 +555,8 @@ const CODE_HASH='c598a6e2835e5ce64f29fd9395b3848cb70b707790b482bdb2ea5a41bfca889
 const SITE_SET=window.SOLEIL_SETTINGS||{};
 const OPEN_ROUTES=[].concat(SITE_SET.lockHome?[]:['home']).concat(Array.isArray(SITE_SET.openPages)?SITE_SET.openPages.map(s=>String(s).toLowerCase()):[]);
 const pgLock=document.getElementById('pg-lock');
-let unlocked=false;try{unlocked=localStorage.getItem('ssw-access')==='1'}catch(_){}
+/* Unlock lasts only until the page reloads; clear the old saved unlock from earlier visits */
+let unlocked=false;try{localStorage.removeItem('ssw-access')}catch(_){}
 let curRoute='home';
 function isLocked(r){return !OPEN_ROUTES.includes(r)&&!unlocked}
 async function sha(s){
@@ -576,7 +577,7 @@ document.getElementById('lockForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.currentTarget,inp=document.getElementById('code'),err=document.getElementById('lockErr');
   const h=await sha(inp.value.trim().toUpperCase());
   if(h===CODE_HASH){
-    unlocked=true;try{localStorage.setItem('ssw-access','1')}catch(_){}
+    unlocked=true;
     inp.value='';err.textContent='';SFX.add();lastRoute=null;route();
     const el=document.getElementById('bToast');el.textContent='Unlocked';el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800);
   }else{err.textContent='That code didn\u2019t work.';SFX.deny();f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');inp.select()}
