@@ -604,8 +604,9 @@ mbSkip.addEventListener('click',e=>{e.stopPropagation();mbSkip.classList.remove(
 mbar.querySelector('.mb-wave').addEventListener('click',()=>{location.hash='#radio'});
 SoleilRadio.onChange(()=>{if(SoleilRadio.playing())musicStarted=true;if(SoleilRadio.failed){musicBtn.hidden=true;mbar.hidden=true}syncMusicBtn()});
 mbar.hidden=false;
-/* phones only allow sound from the end of a tap (touchend, pointerup, click), not the start */
-['pointerdown','keydown','touchstart','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#mbSkip,#musicBtn,.radio-host'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
+/* phones only allow sound from the end of a tap (touchend, pointerup, click), not the start.
+   Every tap tries again until the sound is really playing, in case the browser blocked an earlier try. */
+['keydown','pointerup','touchend','click'].forEach(ev=>document.addEventListener(ev,function first(e){if(e.target&&e.target.closest&&e.target.closest('#mbPlay,#mbSkip,#musicBtn,.radio-host'))return;if(!musicStarted)playMusic()},{capture:true,passive:true}));
 musicBtn.addEventListener('click',e=>{e.stopPropagation();saveMusic(!musicOn);if(musicOn)playMusic();else SoleilRadio.pause();syncMusicBtn()});
 /* load the player once the page is idle, so it never slows the first paint */
 addEventListener('load',()=>{const go=()=>SoleilRadio.load().catch(()=>{});'requestIdleCallback' in window?requestIdleCallback(go,{timeout:3000}):setTimeout(go,1200)});

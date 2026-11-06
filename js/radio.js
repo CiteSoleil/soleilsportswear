@@ -34,7 +34,7 @@
         /* the player stays open; closing it would leave the music bar with nothing to control */
         wa.onWillClose(cancel=>cancel());
         wa.onTrackDidChange(emit);
-        setInterval(()=>{const s=wa.getMediaStatus();if(s!==last){last=s;emit()}},300);
+        setInterval(()=>{const s=wa.getMediaStatus()+heard();if(s!==last){last=s;emit()}},300);
         emit();mount();return wa;
       })
       .catch(e=>{failed=true;emit();throw e});
@@ -52,7 +52,7 @@
     const cellAt=t=>t&&t.closest&&t.closest('.track-cell');
     const playCell=cell=>{const i=[...cell.parentElement.children].indexOf(cell),titles=host.querySelector('.playlist-track-titles');
       const m=titles&&titles.children[i]&&/^\s*(\d+)\./.exec(titles.children[i].textContent);if(!m)return;
-      wa.setCurrentTrack(+m[1]-1);wa.play()};
+      wake();wa.setCurrentTrack(+m[1]-1);wa.play()};
     host.addEventListener('click',e=>{const cell=cellAt(e.target);if(!cell||e.shiftKey||e.metaKey||e.ctrlKey)return;playCell(cell)},true);
     /* Phones: Webamp turns the mouse event a phone sends after a tap into a drag that moves the song
        up a row. Taps on songs are handled here and never reach Webamp. */
@@ -84,14 +84,21 @@
   ['mousemove','touchmove'].forEach(t=>addEventListener(t,e=>{if(dragging)scaleEv(e)},{capture:true,passive:true}));
   ['mouseup','touchend','touchcancel'].forEach(t=>addEventListener(t,()=>{dragging=false},{capture:true,passive:true}));
 
+  /* Webamp says PLAYING even when the browser blocked the sound (it ignores the failed play), so check
+     the real audio: the song element is moving and the Web Audio context is running. */
+  function parts(){const m=wa&&wa.media;return{ctx:m&&m._context,el:m&&m._source&&m._source._audio}}
+  function heard(){const{ctx,el}=parts();return(!el||!el.paused)&&(!ctx||ctx.state==='running')}
+  /* resume the audio inside the tap itself; phones only allow it there */
+  function wake(){const{ctx}=parts();if(ctx&&ctx.state!=='running'){try{ctx.resume().then(emit,()=>{})}catch(_){}}}
+
   window.SoleilRadio={
     load,fit,show(){load().then(()=>{mount();fit()}).catch(()=>{})},
     get ready(){return !!wa},
     get failed(){return failed},
-    playing:()=>!!wa&&wa.getMediaStatus()==='PLAYING',
-    play(){if(wa)wa.play();else load().then(()=>wa.play()).catch(()=>{})},
+    playing:()=>!!wa&&wa.getMediaStatus()==='PLAYING'&&heard(),
+    play(){if(wa){wake();wa.play();setTimeout(emit,400)}else load().then(()=>{wake();wa.play();setTimeout(emit,400)}).catch(()=>{})},
     pause(){if(wa)wa.pause()},
-    next(){if(wa){wa.nextTrack();if(wa.getMediaStatus()!=='PLAYING')wa.play()}else load().then(()=>wa.play()).catch(()=>{})},
+    next(){if(wa){wake();wa.nextTrack();if(wa.getMediaStatus()!=='PLAYING')wa.play()}else load().then(()=>wa.play()).catch(()=>{})},
     onChange(f){subs.push(f)}
   };
 })();
