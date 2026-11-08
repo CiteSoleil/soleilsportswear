@@ -189,8 +189,11 @@ footer button:focus-visible,.sheet button:focus-visible{outline:2px solid var(--
 .b-sw button{width:30px!important;height:30px;border:var(--rule) solid var(--ink)!important;padding:0!important}
 .b-sw button[aria-pressed="true"]{outline:2.5px solid var(--red);outline-offset:2px}
 .b-dims{padding:6px var(--pad) 28px;font-size:.72rem;color:var(--muted);text-transform:none;line-height:1.6;margin:0;max-width:70ch}
-.b-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translate(-50%,-20px);background:var(--red);color:#fff;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:.8rem;text-transform:uppercase;padding:10px 16px;z-index:9600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.b-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translate(-50%,-20px);background:var(--red,#E1251B);color:#fff;font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:.8rem;text-transform:uppercase;padding:10px 16px;z-index:9600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 .b-toast.on{opacity:1;transform:translate(-50%,0)}
+.b-toast.mid{font-weight:700;transform:translate(-50%,-50%) scale(.94);text-align:center;max-width:82vw}
+.b-toast.mid.on{transform:translate(-50%,-50%)}
+.pop .fine.ok{font-weight:700;color:var(--ink)}
 
 /* ---------- Lock + SMS popup ---------- */
 #pg-lock{display:flex;align-items:center;justify-content:center}
