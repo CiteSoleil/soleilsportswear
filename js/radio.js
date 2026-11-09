@@ -4,9 +4,14 @@
    Shopify theme as is (load it once in theme.liquid, outside the content that page transitions swap).
 
    Options on the script tag (all optional):
-     data-tracks  tracklist JSON (default radio/tracks.json)
+     data-tracks  playlists JSON (default radio/tracks.json)
      data-skin    Winamp skin (default assets/skins/soleil_radio_v1.wsz)
-   Track URLs in the JSON are relative to the site root. */
+   Track URLs in the JSON are relative to the site root.
+
+   Playlists: radio/tracks.json holds {"playlists":[{"name":"SOLEIL","tracks":[...]}, ...]} (a plain list
+   of tracks still works and becomes one playlist called SOLEIL). The first playlist plays by default.
+   A playlist with no songs yet shows as Coming soon. Listeners pick one from Load list in the player's
+   LIST menu, or from any element with data-radio-pick (the PLAYLIST line under the player). */
 (function(){
   const WEBAMP_URL='https://cdn.jsdelivr.net/npm/webamp@2.3.1/built/webamp.bundle.min.mjs';
   const me=document.currentScript,root=new URL('.',document.baseURI);
@@ -15,9 +20,12 @@
   /* base window sizes in Winamp pixels: three 275 x 116 windows stacked */
   const W=275,H=348;
 
-  let wa=null,loading=null,host=null,zoom=1,last='',failed=false,rendered=null;
+  const PICK_KEY='ssw-playlist';
+  let wa=null,loading=null,host=null,zoom=1,last='',failed=false,rendered=null,lists=[],current='';
   const subs=[];
   const emit=()=>subs.forEach(f=>{try{f()}catch(_){}});
+
+  function toTrack(t){return{url:new URL(t.url,root).href,duration:t.duration,metaData:{artist:t.artist||'',title:t.title}}}
 
   function load(){
     if(loading)return loading;
@@ -27,8 +35,13 @@
       .then(([mod,list])=>{
         const Webamp=mod.default;
         if(Webamp.browserIsSupported&&!Webamp.browserIsSupported())throw new Error('unsupported');
-        const tracks=list.map(t=>({url:new URL(t.url,root).href,duration:t.duration,metaData:{artist:t.artist||'',title:t.title}}));
-        wa=new Webamp({initialSkin:{url:SKIN_URL},initialTracks:tracks,enableMediaSession:true,enableHotkeys:false,
+        lists=Array.isArray(list)?[{name:'SOLEIL',tracks:list}]:(list.playlists||[]);
+        lists=lists.map(p=>({name:String(p.name||''),tracks:(p.tracks||[]).map(toTrack)})).filter(p=>p.name);
+        let saved='';try{saved=localStorage.getItem(PICK_KEY)||''}catch(_){}
+        const start=lists.find(p=>p.name===saved&&p.tracks.length)||lists.find(p=>p.tracks.length);
+        if(!start)throw new Error('tracks');
+        current=start.name;syncPick();
+        wa=new Webamp({initialSkin:{url:SKIN_URL},initialTracks:start.tracks,enableMediaSession:true,enableHotkeys:false,
           windowLayout:{main:{position:{top:0,left:0}},equalizer:{position:{top:116,left:0}},playlist:{position:{top:232,left:0}}}});
         if(!wa.isRepeatEnabled())wa.toggleRepeat();
         /* the player stays open; closing it would leave the music bar with nothing to control */
@@ -48,6 +61,12 @@
   function mount(){
     const box=stage();if(!wa||rendered||!box||!box.clientWidth)return;
     host=document.createElement('div');host.className='radio-host';box.appendChild(host);fit();
+    /* Load list in the LIST menu opens the playlist chooser instead of a file picker */
+    box.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#playlist-list-menu .load-list'))return;
+      e.stopPropagation();e.preventDefault();
+      /* a click outside the menu closes it, as it would after any menu choice */
+      setTimeout(()=>{box.dispatchEvent(new MouseEvent('click',{bubbles:true}))},0);
+      openPicker()},true);
     /* one tap or click on a song plays it (Winamp itself needs a double click) */
     const cellAt=t=>t&&t.closest&&t.closest('.track-cell');
     const playCell=cell=>{const i=[...cell.parentElement.children].indexOf(cell),titles=host.querySelector('.playlist-track-titles');
@@ -91,7 +110,49 @@
   /* resume the audio inside the tap itself; phones only allow it there */
   function wake(){const{ctx}=parts();if(ctx&&ctx.state!=='running'){try{ctx.resume().then(emit,()=>{})}catch(_){}}}
 
+  /* playlist chooser: a small gray window in the player's style, shared by Load list and the PLAYLIST line */
+  let picker=null,pickerFrom=null;
+  function syncPick(){document.querySelectorAll('[data-radio-pick]').forEach(b=>{const v=b.querySelector('[data-radio-current]')||b;v.textContent=current||'SOLEIL'})}
+  function closePicker(){if(!picker)return;picker.remove();picker=null;removeEventListener('keydown',pickKey,true);
+    if(pickerFrom&&pickerFrom.focus)try{pickerFrom.focus({preventScroll:true})}catch(_){}pickerFrom=null}
+  function pickKey(e){if(e.key==='Escape'){e.stopPropagation();closePicker()}}
+  function openPicker(){
+    if(picker)return;pickerFrom=document.activeElement;
+    picker=document.createElement('div');picker.className='rp-scrim';
+    const win=document.createElement('div');win.className='rp-win';win.setAttribute('role','dialog');win.setAttribute('aria-modal','true');win.setAttribute('aria-labelledby','rpTitle');
+    const head=document.createElement('div');head.className='rp-head';
+    const title=document.createElement('span');title.id='rpTitle';title.textContent='Playlists';
+    const x=document.createElement('button');x.type='button';x.className='rp-x';x.setAttribute('aria-label','Close');x.textContent='\u00D7';x.onclick=closePicker;
+    head.append(title,x);
+    const ul=document.createElement('ul');ul.className='rp-list';
+    lists.forEach(p=>{const li=document.createElement('li'),b=document.createElement('button');b.type='button';b.className='rp-item';
+      const n=document.createElement('span');n.textContent=p.name;
+      const c=document.createElement('span');c.className='rp-count';
+      c.textContent=p.tracks.length?p.tracks.length+(p.tracks.length===1?' song':' songs'):'Coming soon';
+      b.append(n,c);
+      if(p.name===current){b.classList.add('rp-on');b.setAttribute('aria-current','true')}
+      if(!p.tracks.length)b.disabled=true;
+      b.onclick=()=>{choose(p.name);closePicker()};
+      li.appendChild(b);ul.appendChild(li)});
+    win.append(head,ul);picker.appendChild(win);
+    picker.addEventListener('click',e=>{if(e.target===picker)closePicker()});
+    document.body.appendChild(picker);addEventListener('keydown',pickKey,true);
+    const first=win.querySelector('.rp-on')||win.querySelector('.rp-item:not(:disabled)');if(first)first.focus({preventScroll:true})}
+  /* swap the songs and start the new playlist; the music bar follows because it controls this same player */
+  function choose(name){
+    const p=lists.find(q=>q.name===name);if(!p||!p.tracks.length)return;
+    try{localStorage.setItem(PICK_KEY,name)}catch(_){}
+    if(name===current&&wa){if(wa.getMediaStatus()!=='PLAYING'){wake();wa.play()}return}
+    current=name;syncPick();
+    if(wa){wake();wa.setTracksToPlay(p.tracks);setTimeout(emit,400)}emit()}
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-radio-pick]');if(!b)return;e.preventDefault();
+    if(wa)openPicker();else load().then(openPicker).catch(()=>{})});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncPick);else syncPick();
+
   window.SoleilRadio={
+    get playlist(){return current},
+    get playlists(){return lists.map(p=>({name:p.name,songs:p.tracks.length}))},
+    choose,
     load,fit,show(){load().then(()=>{mount();fit()}).catch(()=>{})},
     get ready(){return !!wa},
     get failed(){return failed},

@@ -1,20 +1,31 @@
-[
-  {
-    "title": "HMU INVADA",
-    "artist": "",
-    "url": "assets/audio/hmu-invada.mp3",
-    "duration": 171.43
-  },
-  {
-    "title": "Boosie Flow",
-    "artist": "Montana 700",
-    "url": "assets/audio/boosie-flow.mp3",
-    "duration": 153.95
-  },
-  {
-    "title": "Not Tha Same (prod. clibbo fallwood)",
-    "artist": "",
-    "url": "assets/audio/not-tha-same.m4a",
-    "duration": 127.96
-  }
-]
+{
+  "playlists": [
+    {
+      "name": "SOLEIL",
+      "tracks": [
+        {
+          "title": "HMU INVADA",
+          "artist": "",
+          "url": "assets/audio/hmu-invada.mp3",
+          "duration": 171.43
+        },
+        {
+          "title": "Boosie Flow",
+          "artist": "Montana 700",
+          "url": "assets/audio/boosie-flow.mp3",
+          "duration": 153.95
+        },
+        {
+          "title": "Not Tha Same (prod. clibbo fallwood)",
+          "artist": "",
+          "url": "assets/audio/not-tha-same.m4a",
+          "duration": 127.96
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "tracks": []
+    }
+  ]
+}

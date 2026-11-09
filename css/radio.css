@@ -8,3 +8,23 @@
 .radio-host{position:absolute;left:0;top:0;text-transform:none;letter-spacing:normal}
 /* the waveform in the music bar opens SOLEIL radio */
 .mbar .mb-wave{cursor:pointer}
+
+/* PLAYLIST line under the player: opens the playlist chooser */
+.radio-foot{padding:10px var(--pad) 12px;border-top:var(--rule) solid currentColor;flex:none}
+.radio-pick{font:inherit;font-size:.8rem;font-weight:400;letter-spacing:-.01em;text-transform:uppercase;color:inherit;background:none;border:0;padding:6px 0;cursor:pointer;display:inline-flex;align-items:center;gap:.45em}
+.radio-pick b{font-weight:700}
+.radio-pick::after{content:"";width:.5em;height:.5em;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-.15em) rotate(45deg);margin-left:.2em}
+.radio-pick:focus-visible{outline:2px solid #E1251B;outline-offset:3px}
+
+/* playlist chooser: a small gray window in the player's style (rp- prefix keeps clear of Webamp's class names) */
+.rp-scrim{position:fixed;inset:0;z-index:9400;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(11,11,11,.35)}
+.rp-win{width:min(320px,100%);background:#B7B7B7;color:#0B0B0B;border:2px solid;border-color:#F9F9F9 #5E5E5E #5E5E5E #F9F9F9;box-shadow:0 0 0 1px #0B0B0B,6px 6px 0 rgba(11,11,11,.35);font-family:"Neue Helvetica","Helvetica Neue",Helvetica,Arial,sans-serif;text-transform:uppercase}
+.rp-head{display:flex;align-items:center;justify-content:space-between;background:#0B0B0B;color:#F9F9F9;padding:5px 6px 5px 10px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+.rp-x{width:22px;height:22px;display:grid;place-items:center;font-family:inherit;font-size:16px;font-weight:700;line-height:1;color:#0B0B0B;background:#B7B7B7;border:2px solid;border-color:#F9F9F9 #5E5E5E #5E5E5E #F9F9F9;padding:0;cursor:pointer}
+.rp-x:active{border-color:#5E5E5E #F9F9F9 #F9F9F9 #5E5E5E}
+.rp-list{list-style:none;margin:8px;padding:2px;background:#0B0B0B;border:2px solid;border-color:#5E5E5E #F9F9F9 #F9F9F9 #5E5E5E}
+.rp-item{width:100%;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font:inherit;font-size:.85rem;font-weight:700;letter-spacing:-.02em;text-transform:uppercase;text-align:left;color:#F9F9F9;background:none;border:0;padding:10px;cursor:pointer}
+.rp-item:hover:not(:disabled),.rp-item:focus-visible{background:#5E5E5E;outline:none}
+.rp-item.rp-on{background:#E1251B;color:#F9F9F9}
+.rp-item:disabled{color:#5E5E5E;cursor:default}
+.rp-count{font-size:.68rem;font-weight:400;letter-spacing:0}
